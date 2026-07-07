@@ -1,17 +1,51 @@
-import Database from 'better-sqlite3'
 import path from 'path'
+import fs from 'fs'
+import initSqlJs from 'sql.js'
 
 let _db = null
 
-function getDb() {
+async function getDb() {
   if (!_db) {
-    const dbPath = path.join(process.cwd(), 'data', 'seattle_housing.db')
-    _db = new Database(dbPath, { readonly: true })
+    const wasmPath = path.join(
+      process.cwd(),
+      'node_modules',
+      'sql.js',
+      'dist',
+      'sql-wasm.wasm'
+    )
+    const SQL = await initSqlJs({
+      locateFile: () => wasmPath,
+    })
+    const dbPath = path.join(process.cwd(), '..', 'data', 'seattle_housing.db')
+    const fileBuffer = fs.readFileSync(dbPath)
+    _db = new SQL.Database(fileBuffer)
   }
   return _db
 }
 
-export function getProperties({
+/**
+ * Execute a SELECT query and return all rows as plain objects.
+ */
+function execQuery(db, sql, params = []) {
+  const stmt = db.prepare(sql)
+  stmt.bind(params)
+  const rows = []
+  while (stmt.step()) {
+    rows.push(stmt.getAsObject())
+  }
+  stmt.free()
+  return rows
+}
+
+/**
+ * Execute a SELECT query expected to return a single row.
+ */
+function execQueryOne(db, sql, params = []) {
+  const rows = execQuery(db, sql, params)
+  return rows[0] ?? null
+}
+
+export async function getProperties({
   search = '',
   neighborhood = '',
   program = '',
@@ -21,7 +55,7 @@ export function getProperties({
   page = 1,
   limit = 48,
 }) {
-  const db = getDb()
+  const db = await getDb()
   const offset = (page - 1) * limit
   const like = `%${search}%`
 
@@ -87,37 +121,40 @@ export function getProperties({
   `
 
   const dataParams = [...params, limit, offset]
-  const rows = db.prepare(sql).all(...dataParams)
-  const { total } = db.prepare(countSql).get(...params)
+  const rows = execQuery(db, sql, dataParams)
+  const countRow = execQueryOne(db, countSql, params)
+  const total = countRow ? Number(countRow.total) : 0
 
   return { properties: rows, total }
 }
 
-export function getMapProperties() {
-  const db = getDb()
-  return db
-    .prepare(
-      `SELECT id, building_name, address, neighborhood, program, lat, long,
-        (SELECT COUNT(*) FROM units WHERE property_id = properties.id AND rent_min IS NOT NULL) AS listing_count
-       FROM properties WHERE lat != 0 AND long != 0`
-    )
-    .all()
+export async function getMapProperties() {
+  const db = await getDb()
+  return execQuery(
+    db,
+    `SELECT id, building_name, address, neighborhood, program, lat, long,
+      (SELECT COUNT(*) FROM units WHERE property_id = properties.id AND rent_min IS NOT NULL) AS listing_count
+     FROM properties WHERE lat != 0 AND long != 0`
+  )
 }
 
-export function getPropertyById(id) {
-  const db = getDb()
-  const property = db.prepare('SELECT * FROM properties WHERE id = ?').get(Number(id))
+export async function getPropertyById(id) {
+  const db = await getDb()
+  const property = execQueryOne(db, 'SELECT * FROM properties WHERE id = ?', [Number(id)])
   if (!property) return null
-  const units = db
-    .prepare('SELECT * FROM units WHERE property_id = ? ORDER BY unit_type, rent_min')
-    .all(Number(id))
+  const units = execQuery(
+    db,
+    'SELECT * FROM units WHERE property_id = ? ORDER BY unit_type, rent_min',
+    [Number(id)]
+  )
   return { ...property, units }
 }
 
-export function getNeighborhoods() {
-  const db = getDb()
-  return db
-    .prepare("SELECT DISTINCT neighborhood FROM properties WHERE neighborhood != '' ORDER BY neighborhood")
-    .all()
-    .map((r) => r.neighborhood)
+export async function getNeighborhoods() {
+  const db = await getDb()
+  const rows = execQuery(
+    db,
+    "SELECT DISTINCT neighborhood FROM properties WHERE neighborhood != '' ORDER BY neighborhood"
+  )
+  return rows.map((r) => r.neighborhood)
 }
