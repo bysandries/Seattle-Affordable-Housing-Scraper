@@ -1,6 +1,9 @@
 {
   "name": "seattle-housing-web",
   "private": true,
+  "pnpm": {
+    "onlyBuiltDependencies": []
+  },
   "scripts": {
     "dev": "next dev --port 3000",
     "build": "next build",
@@ -10,7 +13,7 @@
     "next": "14.2.30",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "better-sqlite3": "^11.10.0",
+    "sql.js": "^1.14.1",
     "leaflet": "^1.9.4"
   },
   "devDependencies": {
