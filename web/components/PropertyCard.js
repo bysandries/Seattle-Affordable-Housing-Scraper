@@ -1,0 +1,143 @@
+'use client'
+
+function AmiDot({ amis }) {
+  const val = parseInt(amis)
+  let color = 'bg-slate-300'
+  if (!isNaN(val)) {
+    if (val <= 30) color = 'bg-emerald-500'
+    else if (val <= 50) color = 'bg-blue-500'
+    else if (val <= 65) color = 'bg-teal-500'
+    else if (val <= 80) color = 'bg-amber-400'
+    else color = 'bg-orange-400'
+  }
+  return <span className={`inline-block w-2 h-2 rounded-full ${color}`} />
+}
+
+const BEDROOM_LABELS = {
+  micro: 'Micro',
+  studio: 'Studio',
+  '1-bedroom': '1BR',
+  '2-bedroom': '2BR',
+  '3-bedroom': '3BR',
+  '1br': '1BR',
+  '2br': '2BR',
+  '3br': '3BR',
+}
+
+function parseBrTypes(brTypes) {
+  if (!brTypes) return []
+  return brTypes
+    .split(/[,\s]+/)
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean)
+    .map((s) => BEDROOM_LABELS[s] || s)
+    .filter((v, i, a) => a.indexOf(v) === i)
+}
+
+function parseAvailableTypes(types) {
+  if (!types) return []
+  return types
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .map((s) => BEDROOM_LABELS[s] || s)
+}
+
+export default function PropertyCard({ property, isSelected, onClick }) {
+  const isMixed = property.program === 'Mixed Market and Affordable'
+  const hasListings = property.listing_count > 0
+  const brTypes = parseBrTypes(property.br_types)
+  const liveTypes = parseAvailableTypes(property.available_types)
+
+  return (
+    <button
+      onClick={onClick}
+      className={`w-full text-left bg-white rounded-xl border-2 transition-all duration-150 hover:shadow-md hover:-translate-y-0.5 p-4 flex flex-col gap-2 ${
+        isSelected
+          ? 'border-blue-500 shadow-md shadow-blue-100'
+          : 'border-slate-100 hover:border-slate-300'
+      }`}
+    >
+      {/* Header row */}
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-slate-900 text-sm leading-tight truncate">
+            {property.building_name}
+          </h3>
+          <p className="text-slate-400 text-xs truncate mt-0.5">{property.address}</p>
+        </div>
+        {hasListings ? (
+          <span className="shrink-0 flex items-center gap-1 text-emerald-600 bg-emerald-50 text-xs font-medium px-2 py-0.5 rounded-full border border-emerald-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            Live
+          </span>
+        ) : null}
+      </div>
+
+      {/* Badges */}
+      <div className="flex flex-wrap gap-1">
+        <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-medium">
+          {property.neighborhood}
+        </span>
+        <span
+          className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+            isMixed
+              ? 'bg-amber-50 text-amber-700 border border-amber-200'
+              : 'bg-violet-50 text-violet-700 border border-violet-200'
+          }`}
+        >
+          {isMixed ? 'Mixed' : 'Affordable'}
+        </span>
+      </div>
+
+      {/* AMI + Units */}
+      <div className="flex items-center gap-3 text-xs text-slate-500">
+        {property.amis && (
+          <span className="flex items-center gap-1">
+            <AmiDot amis={property.amis} />
+            {property.amis} AMI
+          </span>
+        )}
+        {property.income_restricted_units > 0 && (
+          <span>
+            {property.income_restricted_units}/{property.total_units} restricted
+          </span>
+        )}
+        {property.expiration_date && (
+          <span className="text-slate-400">exp. {property.expiration_date}</span>
+        )}
+      </div>
+
+      {/* Bedroom types */}
+      <div className="flex flex-wrap gap-1">
+        {brTypes.slice(0, 5).map((b) => (
+          <span
+            key={b}
+            className="text-xs px-1.5 py-0.5 rounded bg-slate-100 text-slate-600"
+          >
+            {b}
+          </span>
+        ))}
+      </div>
+
+      {/* Pricing / Availability */}
+      <div className="mt-1 pt-2 border-t border-slate-100">
+        <div className="flex items-center justify-between">
+          <div className="text-xs text-slate-500">
+            {hasListings && liveTypes.length > 0 ? `${liveTypes.join(' · ')} available` : 'Check availability'}
+          </div>
+          {property.min_rent ? (
+            <div className="text-sm font-semibold text-slate-800">
+              from ${property.min_rent.toLocaleString()}
+              <span className="text-slate-400 font-normal text-xs">/mo</span>
+            </div>
+          ) : (
+            <div className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded">
+              Contact for Pricing
+            </div>
+          )}
+        </div>
+      </div>
+    </button>
+  )
+}

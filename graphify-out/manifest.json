@@ -1,0 +1,127 @@
+{
+  "/Users/bysandries/Developer/Web/SeattleHousingScrapper/db.py": {
+    "mtime": 1780601386.911007,
+    "ast_hash": "bd7465555c3cc96b0216948963538b79",
+    "semantic_hash": "bd7465555c3cc96b0216948963538b79"
+  },
+  "/Users/bysandries/Developer/Web/SeattleHousingScrapper/config.py": {
+    "mtime": 1780601362.199426,
+    "ast_hash": "fd386dca27c0fa73c06b7dc8deb7b425",
+    "semantic_hash": "fd386dca27c0fa73c06b7dc8deb7b425"
+  },
+  "/Users/bysandries/Developer/Web/SeattleHousingScrapper/models.py": {
+    "mtime": 1780601369.0016491,
+    "ast_hash": "932884fc0f321fbc5cecfa4dac353ac8",
+    "semantic_hash": "932884fc0f321fbc5cecfa4dac353ac8"
+  },
+  "/Users/bysandries/Developer/Web/SeattleHousingScrapper/main.py": {
+    "mtime": 1780625323.528386,
+    "ast_hash": "d69f2e8f5d0392569484801eeef44152",
+    "semantic_hash": "d69f2e8f5d0392569484801eeef44152"
+  },
+  "/Users/bysandries/Developer/Web/SeattleHousingScrapper/web/jsconfig.json": {
+    "mtime": 1780603030.8731673,
+    "ast_hash": "1785e71c7510902b04f35784b434ec4b",
+    "semantic_hash": "1785e71c7510902b04f35784b434ec4b"
+  },
+  "/Users/bysandries/Developer/Web/SeattleHousingScrapper/web/tailwind.config.js": {
+    "mtime": 1780602817.5784976,
+    "ast_hash": "6c53d52277f8a66b1c48151017116505",
+    "semantic_hash": "6c53d52277f8a66b1c48151017116505"
+  },
+  "/Users/bysandries/Developer/Web/SeattleHousingScrapper/web/next.config.mjs": {
+    "mtime": 1780603029.877858,
+    "ast_hash": "7063533f93aa88c709014cc03bef83ab",
+    "semantic_hash": "7063533f93aa88c709014cc03bef83ab"
+  },
+  "/Users/bysandries/Developer/Web/SeattleHousingScrapper/web/package.json": {
+    "mtime": 1780602814.627071,
+    "ast_hash": "cbc1257dcdc5b3f3196fba146006df2e",
+    "semantic_hash": "cbc1257dcdc5b3f3196fba146006df2e"
+  },
+  "/Users/bysandries/Developer/Web/SeattleHousingScrapper/web/postcss.config.js": {
+    "mtime": 1780602818.09062,
+    "ast_hash": "854b38759e7a8b4b82306ae2d9a3a833",
+    "semantic_hash": "854b38759e7a8b4b82306ae2d9a3a833"
+  },
+  "/Users/bysandries/Developer/Web/SeattleHousingScrapper/web/app/layout.js": {
+    "mtime": 1780602859.4435003,
+    "ast_hash": "769c57389cacf09518d4cd5e91e7e20d",
+    "semantic_hash": "769c57389cacf09518d4cd5e91e7e20d"
+  },
+  "/Users/bysandries/Developer/Web/SeattleHousingScrapper/web/app/page.js": {
+    "mtime": 1780602992.777282,
+    "ast_hash": "9339c79680036e9a880b5bc166950644",
+    "semantic_hash": "9339c79680036e9a880b5bc166950644"
+  },
+  "/Users/bysandries/Developer/Web/SeattleHousingScrapper/web/app/api/properties/route.js": {
+    "mtime": 1780602845.5639703,
+    "ast_hash": "32ada1db2eda4357b10f176696dd7dd1",
+    "semantic_hash": "32ada1db2eda4357b10f176696dd7dd1"
+  },
+  "/Users/bysandries/Developer/Web/SeattleHousingScrapper/web/app/api/properties/[id]/route.js": {
+    "mtime": 1780602849.3900726,
+    "ast_hash": "94472db402bc9d18c72b4c8e2b88d7cd",
+    "semantic_hash": "94472db402bc9d18c72b4c8e2b88d7cd"
+  },
+  "/Users/bysandries/Developer/Web/SeattleHousingScrapper/web/components/FilterBar.js": {
+    "mtime": 1780602959.9268696,
+    "ast_hash": "eff5d75fa93d818e7847fc973982f0b1",
+    "semantic_hash": "eff5d75fa93d818e7847fc973982f0b1"
+  },
+  "/Users/bysandries/Developer/Web/SeattleHousingScrapper/web/components/PropertyCard.js": {
+    "mtime": 1780602898.469428,
+    "ast_hash": "bc2b64dc14b85f610c276eae740f581c",
+    "semantic_hash": "bc2b64dc14b85f610c276eae740f581c"
+  },
+  "/Users/bysandries/Developer/Web/SeattleHousingScrapper/web/components/Map.js": {
+    "mtime": 1780603210.7081332,
+    "ast_hash": "146d37a91b96124539e9c0b8fbff359d",
+    "semantic_hash": "146d37a91b96124539e9c0b8fbff359d"
+  },
+  "/Users/bysandries/Developer/Web/SeattleHousingScrapper/web/components/PropertyModal.js": {
+    "mtime": 1780602935.660343,
+    "ast_hash": "07fce5e4da1354c69b8008d2e949e0ce",
+    "semantic_hash": "07fce5e4da1354c69b8008d2e949e0ce"
+  },
+  "/Users/bysandries/Developer/Web/SeattleHousingScrapper/web/lib/db.js": {
+    "mtime": 1780625643.687149,
+    "ast_hash": "6f251511de8639ad4fd64efbe49e9972",
+    "semantic_hash": "6f251511de8639ad4fd64efbe49e9972"
+  },
+  "/Users/bysandries/Developer/Web/SeattleHousingScrapper/output/results.json": {
+    "mtime": 1780602226.5934312,
+    "ast_hash": "f69605a4400d867fbfa2e11794427a96",
+    "semantic_hash": "f69605a4400d867fbfa2e11794427a96"
+  },
+  "/Users/bysandries/Developer/Web/SeattleHousingScrapper/scrapers/website_discovery.py": {
+    "mtime": 1780601666.47894,
+    "ast_hash": "169ca4c3aba1bdca42596267d31edbdf",
+    "semantic_hash": "169ca4c3aba1bdca42596267d31edbdf"
+  },
+  "/Users/bysandries/Developer/Web/SeattleHousingScrapper/scrapers/__init__.py": {
+    "mtime": 1780601390.7392724,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "/Users/bysandries/Developer/Web/SeattleHousingScrapper/scrapers/arcgis.py": {
+    "mtime": 1780601399.4600635,
+    "ast_hash": "12cd733d6e1768636003440084eae6c3",
+    "semantic_hash": "12cd733d6e1768636003440084eae6c3"
+  },
+  "/Users/bysandries/Developer/Web/SeattleHousingScrapper/scrapers/contact_inquiry.py": {
+    "mtime": 1780625471.0360746,
+    "ast_hash": "a567d737f79a0d2e8610c9a79c1ea898",
+    "semantic_hash": "a567d737f79a0d2e8610c9a79c1ea898"
+  },
+  "/Users/bysandries/Developer/Web/SeattleHousingScrapper/scrapers/property_scraper.py": {
+    "mtime": 1780626577.766562,
+    "ast_hash": "77b964e5a43a8f7353c61e94adf7907f",
+    "semantic_hash": "77b964e5a43a8f7353c61e94adf7907f"
+  },
+  "/Users/bysandries/Developer/Web/SeattleHousingScrapper/requirements.txt": {
+    "mtime": 1780601663.563041,
+    "ast_hash": "47be79455fd50b81e0502f6d88df8852",
+    "semantic_hash": "47be79455fd50b81e0502f6d88df8852"
+  }
+}

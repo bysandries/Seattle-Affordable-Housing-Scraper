@@ -1,0 +1,2893 @@
+{
+  "directed": false,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "label": "db.py",
+      "file_type": "code",
+      "source_file": "db.py",
+      "source_location": "L1",
+      "id": "db_py",
+      "community": 3,
+      "norm_label": "db.py"
+    },
+    {
+      "label": "get_connection()",
+      "file_type": "code",
+      "source_file": "db.py",
+      "source_location": "L9",
+      "id": "seattlehousingscrapper_db_get_connection",
+      "community": 3,
+      "norm_label": "get_connection()"
+    },
+    {
+      "label": "db_conn()",
+      "file_type": "code",
+      "source_file": "db.py",
+      "source_location": "L17",
+      "id": "seattlehousingscrapper_db_db_conn",
+      "community": 3,
+      "norm_label": "db_conn()"
+    },
+    {
+      "label": "init_db()",
+      "file_type": "code",
+      "source_file": "db.py",
+      "source_location": "L29",
+      "id": "seattlehousingscrapper_db_init_db",
+      "community": 3,
+      "norm_label": "init_db()"
+    },
+    {
+      "label": "upsert_property()",
+      "file_type": "code",
+      "source_file": "db.py",
+      "source_location": "L73",
+      "id": "seattlehousingscrapper_db_upsert_property",
+      "community": 3,
+      "norm_label": "upsert_property()"
+    },
+    {
+      "label": "update_website_discovery()",
+      "file_type": "code",
+      "source_file": "db.py",
+      "source_location": "L123",
+      "id": "seattlehousingscrapper_db_update_website_discovery",
+      "community": 3,
+      "norm_label": "update_website_discovery()"
+    },
+    {
+      "label": "insert_units()",
+      "file_type": "code",
+      "source_file": "db.py",
+      "source_location": "L135",
+      "id": "seattlehousingscrapper_db_insert_units",
+      "community": 3,
+      "norm_label": "insert_units()"
+    },
+    {
+      "label": "get_all_properties()",
+      "file_type": "code",
+      "source_file": "db.py",
+      "source_location": "L167",
+      "id": "seattlehousingscrapper_db_get_all_properties",
+      "community": 3,
+      "norm_label": "get_all_properties()"
+    },
+    {
+      "label": "get_properties_needing_discovery()",
+      "file_type": "code",
+      "source_file": "db.py",
+      "source_location": "L171",
+      "id": "seattlehousingscrapper_db_get_properties_needing_discovery",
+      "community": 3,
+      "norm_label": "get_properties_needing_discovery()"
+    },
+    {
+      "label": "get_properties_to_scrape()",
+      "file_type": "code",
+      "source_file": "db.py",
+      "source_location": "L178",
+      "id": "seattlehousingscrapper_db_get_properties_to_scrape",
+      "community": 3,
+      "norm_label": "get_properties_to_scrape()"
+    },
+    {
+      "label": "config.py",
+      "file_type": "code",
+      "source_file": "config.py",
+      "source_location": "L1",
+      "id": "config_py",
+      "community": 16,
+      "norm_label": "config.py"
+    },
+    {
+      "label": "models.py",
+      "file_type": "code",
+      "source_file": "models.py",
+      "source_location": "L1",
+      "id": "models_py",
+      "community": 8,
+      "norm_label": "models.py"
+    },
+    {
+      "label": "Property",
+      "file_type": "code",
+      "source_file": "models.py",
+      "source_location": "L6",
+      "id": "seattlehousingscrapper_models_property",
+      "community": 8,
+      "norm_label": "property"
+    },
+    {
+      "label": "UnitListing",
+      "file_type": "code",
+      "source_file": "models.py",
+      "source_location": "L29",
+      "id": "seattlehousingscrapper_models_unitlisting",
+      "community": 0,
+      "norm_label": "unitlisting"
+    },
+    {
+      "label": "main.py",
+      "file_type": "code",
+      "source_file": "main.py",
+      "source_location": "L1",
+      "rationale": "Seattle Affordable Housing Scraper \u2014 CLI entry point.  Usage:     python main.py",
+      "id": "main_py",
+      "community": 4,
+      "norm_label": "main.py"
+    },
+    {
+      "label": "cmd_fetch()",
+      "file_type": "code",
+      "source_file": "main.py",
+      "source_location": "L22",
+      "id": "seattlehousingscrapper_main_cmd_fetch",
+      "community": 4,
+      "norm_label": "cmd_fetch()"
+    },
+    {
+      "label": "cmd_discover()",
+      "file_type": "code",
+      "source_file": "main.py",
+      "source_location": "L27",
+      "id": "seattlehousingscrapper_main_cmd_discover",
+      "community": 4,
+      "norm_label": "cmd_discover()"
+    },
+    {
+      "label": "cmd_scrape()",
+      "file_type": "code",
+      "source_file": "main.py",
+      "source_location": "L32",
+      "id": "seattlehousingscrapper_main_cmd_scrape",
+      "community": 4,
+      "norm_label": "cmd_scrape()"
+    },
+    {
+      "label": "cmd_all()",
+      "file_type": "code",
+      "source_file": "main.py",
+      "source_location": "L37",
+      "id": "seattlehousingscrapper_main_cmd_all",
+      "community": 4,
+      "norm_label": "cmd_all()"
+    },
+    {
+      "label": "cmd_export()",
+      "file_type": "code",
+      "source_file": "main.py",
+      "source_location": "L43",
+      "id": "seattlehousingscrapper_main_cmd_export",
+      "community": 4,
+      "norm_label": "cmd_export()"
+    },
+    {
+      "label": "cmd_contact()",
+      "file_type": "code",
+      "source_file": "main.py",
+      "source_location": "L80",
+      "id": "seattlehousingscrapper_main_cmd_contact",
+      "community": 4,
+      "norm_label": "cmd_contact()"
+    },
+    {
+      "label": "cmd_stats()",
+      "file_type": "code",
+      "source_file": "main.py",
+      "source_location": "L85",
+      "id": "seattlehousingscrapper_main_cmd_stats",
+      "community": 4,
+      "norm_label": "cmd_stats()"
+    },
+    {
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "main.py",
+      "source_location": "L102",
+      "id": "seattlehousingscrapper_main_main",
+      "community": 4,
+      "norm_label": "main()"
+    },
+    {
+      "label": "jsconfig.json",
+      "file_type": "code",
+      "source_file": "web/jsconfig.json",
+      "source_location": "L1",
+      "id": "web_jsconfig_json",
+      "community": 11,
+      "norm_label": "jsconfig.json"
+    },
+    {
+      "label": "compilerOptions",
+      "file_type": "code",
+      "source_file": "web/jsconfig.json",
+      "source_location": "L2",
+      "id": "web_jsconfig_compileroptions",
+      "community": 11,
+      "norm_label": "compileroptions"
+    },
+    {
+      "label": "baseUrl",
+      "file_type": "code",
+      "source_file": "web/jsconfig.json",
+      "source_location": "L3",
+      "id": "web_jsconfig_compileroptions_baseurl",
+      "community": 11,
+      "norm_label": "baseurl"
+    },
+    {
+      "label": "paths",
+      "file_type": "code",
+      "source_file": "web/jsconfig.json",
+      "source_location": "L4",
+      "id": "web_jsconfig_compileroptions_paths",
+      "community": 11,
+      "norm_label": "paths"
+    },
+    {
+      "label": "@/*",
+      "file_type": "code",
+      "source_file": "web/jsconfig.json",
+      "source_location": "L5",
+      "id": "web_jsconfig_paths",
+      "community": 11,
+      "norm_label": "@/*"
+    },
+    {
+      "label": "tailwind.config.js",
+      "file_type": "code",
+      "source_file": "web/tailwind.config.js",
+      "source_location": "L1",
+      "id": "web_tailwind_config_js",
+      "community": 17,
+      "norm_label": "tailwind.config.js"
+    },
+    {
+      "label": "next.config.mjs",
+      "file_type": "code",
+      "source_file": "web/next.config.mjs",
+      "source_location": "L1",
+      "id": "web_next_config_mjs",
+      "community": 15,
+      "norm_label": "next.config.mjs"
+    },
+    {
+      "label": "nextConfig",
+      "file_type": "code",
+      "source_file": "web/next.config.mjs",
+      "source_location": "L2",
+      "id": "web_next_config_nextconfig",
+      "community": 15,
+      "norm_label": "nextconfig"
+    },
+    {
+      "label": "package.json",
+      "file_type": "code",
+      "source_file": "web/package.json",
+      "source_location": "L1",
+      "id": "web_package_json",
+      "community": 1,
+      "norm_label": "package.json"
+    },
+    {
+      "label": "name",
+      "file_type": "code",
+      "source_file": "web/package.json",
+      "source_location": "L2",
+      "id": "web_package_name",
+      "community": 1,
+      "norm_label": "name"
+    },
+    {
+      "label": "private",
+      "file_type": "code",
+      "source_file": "web/package.json",
+      "source_location": "L3",
+      "id": "web_package_private",
+      "community": 1,
+      "norm_label": "private"
+    },
+    {
+      "label": "scripts",
+      "file_type": "code",
+      "source_file": "web/package.json",
+      "source_location": "L4",
+      "id": "web_package_scripts",
+      "community": 1,
+      "norm_label": "scripts"
+    },
+    {
+      "label": "dev",
+      "file_type": "code",
+      "source_file": "web/package.json",
+      "source_location": "L5",
+      "id": "web_package_scripts_dev",
+      "community": 1,
+      "norm_label": "dev"
+    },
+    {
+      "label": "build",
+      "file_type": "code",
+      "source_file": "web/package.json",
+      "source_location": "L6",
+      "id": "web_package_scripts_build",
+      "community": 1,
+      "norm_label": "build"
+    },
+    {
+      "label": "start",
+      "file_type": "code",
+      "source_file": "web/package.json",
+      "source_location": "L7",
+      "id": "web_package_scripts_start",
+      "community": 1,
+      "norm_label": "start"
+    },
+    {
+      "label": "dependencies",
+      "file_type": "code",
+      "source_file": "web/package.json",
+      "source_location": "L9",
+      "id": "web_package_dependencies",
+      "community": 1,
+      "norm_label": "dependencies"
+    },
+    {
+      "label": "next",
+      "file_type": "code",
+      "source_file": "web/package.json",
+      "source_location": "L10",
+      "id": "web_package_dependencies_next",
+      "community": 1,
+      "norm_label": "next"
+    },
+    {
+      "label": "react",
+      "file_type": "code",
+      "source_file": "web/package.json",
+      "source_location": "L11",
+      "id": "web_package_dependencies_react",
+      "community": 1,
+      "norm_label": "react"
+    },
+    {
+      "label": "react-dom",
+      "file_type": "code",
+      "source_file": "web/package.json",
+      "source_location": "L12",
+      "id": "web_package_dependencies_react_dom",
+      "community": 1,
+      "norm_label": "react-dom"
+    },
+    {
+      "label": "better-sqlite3",
+      "file_type": "code",
+      "source_file": "web/package.json",
+      "source_location": "L13",
+      "id": "web_package_dependencies_better_sqlite3",
+      "community": 1,
+      "norm_label": "better-sqlite3"
+    },
+    {
+      "label": "leaflet",
+      "file_type": "code",
+      "source_file": "web/package.json",
+      "source_location": "L14",
+      "id": "web_package_dependencies_leaflet",
+      "community": 1,
+      "norm_label": "leaflet"
+    },
+    {
+      "label": "devDependencies",
+      "file_type": "code",
+      "source_file": "web/package.json",
+      "source_location": "L16",
+      "id": "web_package_devdependencies",
+      "community": 1,
+      "norm_label": "devdependencies"
+    },
+    {
+      "label": "tailwindcss",
+      "file_type": "code",
+      "source_file": "web/package.json",
+      "source_location": "L17",
+      "id": "web_package_devdependencies_tailwindcss",
+      "community": 1,
+      "norm_label": "tailwindcss"
+    },
+    {
+      "label": "autoprefixer",
+      "file_type": "code",
+      "source_file": "web/package.json",
+      "source_location": "L18",
+      "id": "web_package_devdependencies_autoprefixer",
+      "community": 1,
+      "norm_label": "autoprefixer"
+    },
+    {
+      "label": "postcss",
+      "file_type": "code",
+      "source_file": "web/package.json",
+      "source_location": "L19",
+      "id": "web_package_devdependencies_postcss",
+      "community": 1,
+      "norm_label": "postcss"
+    },
+    {
+      "label": "postcss.config.js",
+      "file_type": "code",
+      "source_file": "web/postcss.config.js",
+      "source_location": "L1",
+      "id": "web_postcss_config_js",
+      "community": 18,
+      "norm_label": "postcss.config.js"
+    },
+    {
+      "label": "layout.js",
+      "file_type": "code",
+      "source_file": "web/app/layout.js",
+      "source_location": "L1",
+      "id": "web_app_layout_js",
+      "community": 13,
+      "norm_label": "layout.js"
+    },
+    {
+      "label": "metadata",
+      "file_type": "code",
+      "source_file": "web/app/layout.js",
+      "source_location": "L3",
+      "id": "app_layout_metadata",
+      "community": 13,
+      "norm_label": "metadata"
+    },
+    {
+      "label": "RootLayout()",
+      "file_type": "code",
+      "source_file": "web/app/layout.js",
+      "source_location": "L8",
+      "id": "app_layout_rootlayout",
+      "community": 13,
+      "norm_label": "rootlayout()"
+    },
+    {
+      "label": "page.js",
+      "file_type": "code",
+      "source_file": "web/app/page.js",
+      "source_location": "L1",
+      "id": "web_app_page_js",
+      "community": 12,
+      "norm_label": "page.js"
+    },
+    {
+      "label": "Map",
+      "file_type": "code",
+      "source_file": "web/app/page.js",
+      "source_location": "L9",
+      "id": "app_page_map",
+      "community": 12,
+      "norm_label": "map"
+    },
+    {
+      "label": "DEFAULT_FILTERS",
+      "file_type": "code",
+      "source_file": "web/app/page.js",
+      "source_location": "L11",
+      "id": "app_page_default_filters",
+      "community": 12,
+      "norm_label": "default_filters"
+    },
+    {
+      "label": "HomePage()",
+      "file_type": "code",
+      "source_file": "web/app/page.js",
+      "source_location": "L21",
+      "id": "app_page_homepage",
+      "community": 12,
+      "norm_label": "homepage()"
+    },
+    {
+      "label": "route.js",
+      "file_type": "code",
+      "source_file": "web/app/api/properties/route.js",
+      "source_location": "L1",
+      "id": "web_app_api_properties_route_js",
+      "community": 2,
+      "norm_label": "route.js"
+    },
+    {
+      "label": "GET()",
+      "file_type": "code",
+      "source_file": "web/app/api/properties/route.js",
+      "source_location": "L4",
+      "id": "properties_route_get",
+      "community": 2,
+      "norm_label": "get()"
+    },
+    {
+      "label": "route.js",
+      "file_type": "code",
+      "source_file": "web/app/api/properties/[id]/route.js",
+      "source_location": "L1",
+      "id": "web_app_api_properties_id_route_js",
+      "community": 2,
+      "norm_label": "route.js"
+    },
+    {
+      "label": "GET()",
+      "file_type": "code",
+      "source_file": "web/app/api/properties/[id]/route.js",
+      "source_location": "L4",
+      "id": "id_route_get",
+      "community": 2,
+      "norm_label": "get()"
+    },
+    {
+      "label": "FilterBar.js",
+      "file_type": "code",
+      "source_file": "web/components/FilterBar.js",
+      "source_location": "L1",
+      "id": "web_components_filterbar_js",
+      "community": 9,
+      "norm_label": "filterbar.js"
+    },
+    {
+      "label": "BEDROOM_OPTIONS",
+      "file_type": "code",
+      "source_file": "web/components/FilterBar.js",
+      "source_location": "L5",
+      "id": "components_filterbar_bedroom_options",
+      "community": 9,
+      "norm_label": "bedroom_options"
+    },
+    {
+      "label": "PROGRAM_OPTIONS",
+      "file_type": "code",
+      "source_file": "web/components/FilterBar.js",
+      "source_location": "L14",
+      "id": "components_filterbar_program_options",
+      "community": 9,
+      "norm_label": "program_options"
+    },
+    {
+      "label": "RENT_PRESETS",
+      "file_type": "code",
+      "source_file": "web/components/FilterBar.js",
+      "source_location": "L20",
+      "id": "components_filterbar_rent_presets",
+      "community": 9,
+      "norm_label": "rent_presets"
+    },
+    {
+      "label": "FilterBar()",
+      "file_type": "code",
+      "source_file": "web/components/FilterBar.js",
+      "source_location": "L29",
+      "id": "components_filterbar_filterbar",
+      "community": 9,
+      "norm_label": "filterbar()"
+    },
+    {
+      "label": "PropertyCard.js",
+      "file_type": "code",
+      "source_file": "web/components/PropertyCard.js",
+      "source_location": "L1",
+      "id": "web_components_propertycard_js",
+      "community": 7,
+      "norm_label": "propertycard.js"
+    },
+    {
+      "label": "AmiDot()",
+      "file_type": "code",
+      "source_file": "web/components/PropertyCard.js",
+      "source_location": "L3",
+      "id": "components_propertycard_amidot",
+      "community": 7,
+      "norm_label": "amidot()"
+    },
+    {
+      "label": "BEDROOM_LABELS",
+      "file_type": "code",
+      "source_file": "web/components/PropertyCard.js",
+      "source_location": "L16",
+      "id": "components_propertycard_bedroom_labels",
+      "community": 7,
+      "norm_label": "bedroom_labels"
+    },
+    {
+      "label": "parseBrTypes()",
+      "file_type": "code",
+      "source_file": "web/components/PropertyCard.js",
+      "source_location": "L27",
+      "id": "components_propertycard_parsebrtypes",
+      "community": 7,
+      "norm_label": "parsebrtypes()"
+    },
+    {
+      "label": "parseAvailableTypes()",
+      "file_type": "code",
+      "source_file": "web/components/PropertyCard.js",
+      "source_location": "L37",
+      "id": "components_propertycard_parseavailabletypes",
+      "community": 7,
+      "norm_label": "parseavailabletypes()"
+    },
+    {
+      "label": "PropertyCard()",
+      "file_type": "code",
+      "source_file": "web/components/PropertyCard.js",
+      "source_location": "L46",
+      "id": "components_propertycard_propertycard",
+      "community": 7,
+      "norm_label": "propertycard()"
+    },
+    {
+      "label": "Map.js",
+      "file_type": "code",
+      "source_file": "web/components/Map.js",
+      "source_location": "L1",
+      "id": "web_components_map_js",
+      "community": 14,
+      "norm_label": "map.js"
+    },
+    {
+      "label": "SEATTLE_CENTER",
+      "file_type": "code",
+      "source_file": "web/components/Map.js",
+      "source_location": "L5",
+      "id": "components_map_seattle_center",
+      "community": 14,
+      "norm_label": "seattle_center"
+    },
+    {
+      "label": "Map()",
+      "file_type": "code",
+      "source_file": "web/components/Map.js",
+      "source_location": "L9",
+      "id": "components_map_map",
+      "community": 14,
+      "norm_label": "map()"
+    },
+    {
+      "label": "PropertyModal.js",
+      "file_type": "code",
+      "source_file": "web/components/PropertyModal.js",
+      "source_location": "L1",
+      "id": "web_components_propertymodal_js",
+      "community": 10,
+      "norm_label": "propertymodal.js"
+    },
+    {
+      "label": "UNIT_LABELS",
+      "file_type": "code",
+      "source_file": "web/components/PropertyModal.js",
+      "source_location": "L5",
+      "id": "components_propertymodal_unit_labels",
+      "community": 10,
+      "norm_label": "unit_labels"
+    },
+    {
+      "label": "AvailBadge()",
+      "file_type": "code",
+      "source_file": "web/components/PropertyModal.js",
+      "source_location": "L14",
+      "id": "components_propertymodal_availbadge",
+      "community": 10,
+      "norm_label": "availbadge()"
+    },
+    {
+      "label": "MiniMap()",
+      "file_type": "code",
+      "source_file": "web/components/PropertyModal.js",
+      "source_location": "L30",
+      "id": "components_propertymodal_minimap",
+      "community": 10,
+      "norm_label": "minimap()"
+    },
+    {
+      "label": "PropertyModal()",
+      "file_type": "code",
+      "source_file": "web/components/PropertyModal.js",
+      "source_location": "L52",
+      "id": "components_propertymodal_propertymodal",
+      "community": 10,
+      "norm_label": "propertymodal()"
+    },
+    {
+      "label": "db.js",
+      "file_type": "code",
+      "source_file": "web/lib/db.js",
+      "source_location": "L1",
+      "id": "web_lib_db_js",
+      "community": 2,
+      "norm_label": "db.js"
+    },
+    {
+      "label": "getDb()",
+      "file_type": "code",
+      "source_file": "web/lib/db.js",
+      "source_location": "L6",
+      "id": "lib_db_getdb",
+      "community": 2,
+      "norm_label": "getdb()"
+    },
+    {
+      "label": "getProperties()",
+      "file_type": "code",
+      "source_file": "web/lib/db.js",
+      "source_location": "L14",
+      "id": "lib_db_getproperties",
+      "community": 2,
+      "norm_label": "getproperties()"
+    },
+    {
+      "label": "getMapProperties()",
+      "file_type": "code",
+      "source_file": "web/lib/db.js",
+      "source_location": "L96",
+      "id": "lib_db_getmapproperties",
+      "community": 2,
+      "norm_label": "getmapproperties()"
+    },
+    {
+      "label": "getPropertyById()",
+      "file_type": "code",
+      "source_file": "web/lib/db.js",
+      "source_location": "L107",
+      "id": "lib_db_getpropertybyid",
+      "community": 2,
+      "norm_label": "getpropertybyid()"
+    },
+    {
+      "label": "getNeighborhoods()",
+      "file_type": "code",
+      "source_file": "web/lib/db.js",
+      "source_location": "L117",
+      "id": "lib_db_getneighborhoods",
+      "community": 2,
+      "norm_label": "getneighborhoods()"
+    },
+    {
+      "label": "results.json",
+      "file_type": "code",
+      "source_file": "output/results.json",
+      "source_location": "L1",
+      "id": "output_results_json",
+      "community": 19,
+      "norm_label": "results.json"
+    },
+    {
+      "label": "website_discovery.py",
+      "file_type": "code",
+      "source_file": "scrapers/website_discovery.py",
+      "source_location": "L1",
+      "rationale": "Resolve and validate property website URLs.  For properties that already have a",
+      "id": "scrapers_website_discovery_py",
+      "community": 5,
+      "norm_label": "website_discovery.py"
+    },
+    {
+      "label": "_domain()",
+      "file_type": "code",
+      "source_file": "scrapers/website_discovery.py",
+      "source_location": "L26",
+      "id": "scrapers_website_discovery_domain",
+      "community": 5,
+      "norm_label": "_domain()"
+    },
+    {
+      "label": "_is_aggregator()",
+      "file_type": "code",
+      "source_file": "scrapers/website_discovery.py",
+      "source_location": "L33",
+      "id": "scrapers_website_discovery_is_aggregator",
+      "community": 5,
+      "norm_label": "_is_aggregator()"
+    },
+    {
+      "label": "_ensure_scheme()",
+      "file_type": "code",
+      "source_file": "scrapers/website_discovery.py",
+      "source_location": "L38",
+      "id": "scrapers_website_discovery_ensure_scheme",
+      "community": 5,
+      "norm_label": "_ensure_scheme()"
+    },
+    {
+      "label": "_validate_url()",
+      "file_type": "code",
+      "source_file": "scrapers/website_discovery.py",
+      "source_location": "L45",
+      "id": "scrapers_website_discovery_validate_url",
+      "community": 5,
+      "norm_label": "_validate_url()"
+    },
+    {
+      "label": "_search_website()",
+      "file_type": "code",
+      "source_file": "scrapers/website_discovery.py",
+      "source_location": "L58",
+      "id": "scrapers_website_discovery_search_website",
+      "community": 5,
+      "norm_label": "_search_website()"
+    },
+    {
+      "label": "_process_row()",
+      "file_type": "code",
+      "source_file": "scrapers/website_discovery.py",
+      "source_location": "L77",
+      "id": "scrapers_website_discovery_process_row",
+      "community": 5,
+      "norm_label": "_process_row()"
+    },
+    {
+      "label": "_run_async()",
+      "file_type": "code",
+      "source_file": "scrapers/website_discovery.py",
+      "source_location": "L100",
+      "id": "scrapers_website_discovery_run_async",
+      "community": 5,
+      "norm_label": "_run_async()"
+    },
+    {
+      "label": "run()",
+      "file_type": "code",
+      "source_file": "scrapers/website_discovery.py",
+      "source_location": "L123",
+      "id": "scrapers_website_discovery_run",
+      "community": 5,
+      "norm_label": "run()"
+    },
+    {
+      "label": "__init__.py",
+      "file_type": "code",
+      "source_file": "scrapers/__init__.py",
+      "source_location": "L1",
+      "id": "scrapers_init_py",
+      "community": 20,
+      "norm_label": "__init__.py"
+    },
+    {
+      "label": "arcgis.py",
+      "file_type": "code",
+      "source_file": "scrapers/arcgis.py",
+      "source_location": "L1",
+      "rationale": "Fetch all Seattle affordable housing properties from the ArcGIS FeatureServer.",
+      "id": "scrapers_arcgis_py",
+      "community": 8,
+      "norm_label": "arcgis.py"
+    },
+    {
+      "label": "_parse_property()",
+      "file_type": "code",
+      "source_file": "scrapers/arcgis.py",
+      "source_location": "L16",
+      "id": "scrapers_arcgis_parse_property",
+      "community": 8,
+      "norm_label": "_parse_property()"
+    },
+    {
+      "label": "fetch_all_properties()",
+      "file_type": "code",
+      "source_file": "scrapers/arcgis.py",
+      "source_location": "L37",
+      "id": "scrapers_arcgis_fetch_all_properties",
+      "community": 8,
+      "norm_label": "fetch_all_properties()"
+    },
+    {
+      "label": "run()",
+      "file_type": "code",
+      "source_file": "scrapers/arcgis.py",
+      "source_location": "L62",
+      "id": "scrapers_arcgis_run",
+      "community": 8,
+      "norm_label": "run()"
+    },
+    {
+      "label": "contact_inquiry.py",
+      "file_type": "code",
+      "source_file": "scrapers/contact_inquiry.py",
+      "source_location": "L1",
+      "rationale": "Contact properties with listings under $1000/month asking about availability. Su",
+      "id": "scrapers_contact_inquiry_py",
+      "community": 6,
+      "norm_label": "contact_inquiry.py"
+    },
+    {
+      "label": "_should_skip()",
+      "file_type": "code",
+      "source_file": "scrapers/contact_inquiry.py",
+      "source_location": "L105",
+      "id": "scrapers_contact_inquiry_should_skip",
+      "community": 6,
+      "norm_label": "_should_skip()"
+    },
+    {
+      "label": "_get_label_for_input()",
+      "file_type": "code",
+      "source_file": "scrapers/contact_inquiry.py",
+      "source_location": "L119",
+      "rationale": "Return the text label associated with an input element.",
+      "id": "scrapers_contact_inquiry_get_label_for_input",
+      "community": 6,
+      "norm_label": "_get_label_for_input()"
+    },
+    {
+      "label": "_fill_form()",
+      "file_type": "code",
+      "source_file": "scrapers/contact_inquiry.py",
+      "source_location": "L144",
+      "rationale": "Find and fill a contact form on the current page. Returns True if submitted.",
+      "id": "scrapers_contact_inquiry_fill_form",
+      "community": 6,
+      "norm_label": "_fill_form()"
+    },
+    {
+      "label": "_try_chat()",
+      "file_type": "code",
+      "source_file": "scrapers/contact_inquiry.py",
+      "source_location": "L226",
+      "rationale": "Try to open a chat widget and send a message. Returns True if sent.",
+      "id": "scrapers_contact_inquiry_try_chat",
+      "community": 6,
+      "norm_label": "_try_chat()"
+    },
+    {
+      "label": "_contact_property()",
+      "file_type": "code",
+      "source_file": "scrapers/contact_inquiry.py",
+      "source_location": "L251",
+      "id": "scrapers_contact_inquiry_contact_property",
+      "community": 6,
+      "norm_label": "_contact_property()"
+    },
+    {
+      "label": "_get_target_properties()",
+      "file_type": "code",
+      "source_file": "scrapers/contact_inquiry.py",
+      "source_location": "L333",
+      "id": "scrapers_contact_inquiry_get_target_properties",
+      "community": 6,
+      "norm_label": "_get_target_properties()"
+    },
+    {
+      "label": "run_async()",
+      "file_type": "code",
+      "source_file": "scrapers/contact_inquiry.py",
+      "source_location": "L349",
+      "id": "scrapers_contact_inquiry_run_async",
+      "community": 6,
+      "norm_label": "run_async()"
+    },
+    {
+      "label": "run()",
+      "file_type": "code",
+      "source_file": "scrapers/contact_inquiry.py",
+      "source_location": "L442",
+      "id": "scrapers_contact_inquiry_run",
+      "community": 4,
+      "norm_label": "run()"
+    },
+    {
+      "label": "property_scraper.py",
+      "file_type": "code",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L1",
+      "rationale": "Scrape each property's website for availability, pricing, and descriptions.  Str",
+      "id": "scrapers_property_scraper_py",
+      "community": 0,
+      "norm_label": "property_scraper.py"
+    },
+    {
+      "label": "_normalize_unit_type()",
+      "file_type": "code",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L62",
+      "id": "scrapers_property_scraper_normalize_unit_type",
+      "community": 0,
+      "norm_label": "_normalize_unit_type()"
+    },
+    {
+      "label": "_extract_rents()",
+      "file_type": "code",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L69",
+      "id": "scrapers_property_scraper_extract_rents",
+      "community": 0,
+      "norm_label": "_extract_rents()"
+    },
+    {
+      "label": "_extract_sqft()",
+      "file_type": "code",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L80",
+      "id": "scrapers_property_scraper_extract_sqft",
+      "community": 0,
+      "norm_label": "_extract_sqft()"
+    },
+    {
+      "label": "_extract_description()",
+      "file_type": "code",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L88",
+      "rationale": "Return the first substantive paragraph, skipping navigation/menu text.",
+      "id": "scrapers_property_scraper_extract_description",
+      "community": 0,
+      "norm_label": "_extract_description()"
+    },
+    {
+      "label": "_find_availability_url()",
+      "file_type": "code",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L113",
+      "id": "scrapers_property_scraper_find_availability_url",
+      "community": 0,
+      "norm_label": "_find_availability_url()"
+    },
+    {
+      "label": "_find_pm_iframe()",
+      "file_type": "code",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L138",
+      "rationale": "Return the src URL if a known property management embed is found.      Handles b",
+      "id": "scrapers_property_scraper_find_pm_iframe",
+      "community": 0,
+      "norm_label": "_find_pm_iframe()"
+    },
+    {
+      "label": "_parse_appfolio_html()",
+      "file_type": "code",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L175",
+      "id": "scrapers_property_scraper_parse_appfolio_html",
+      "community": 0,
+      "norm_label": "_parse_appfolio_html()"
+    },
+    {
+      "label": "_parse_text_for_units()",
+      "file_type": "code",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L230",
+      "rationale": "Parse plain text for unit blocks separated by known patterns.",
+      "id": "scrapers_property_scraper_parse_text_for_units",
+      "community": 0,
+      "norm_label": "_parse_text_for_units()"
+    },
+    {
+      "label": "_parse_units_from_html()",
+      "file_type": "code",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L279",
+      "id": "scrapers_property_scraper_parse_units_from_html",
+      "community": 0,
+      "norm_label": "_parse_units_from_html()"
+    },
+    {
+      "label": "_fetch_html_httpx()",
+      "file_type": "code",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L378",
+      "id": "scrapers_property_scraper_fetch_html_httpx",
+      "community": 0,
+      "norm_label": "_fetch_html_httpx()"
+    },
+    {
+      "label": "_fetch_html_playwright()",
+      "file_type": "code",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L389",
+      "id": "scrapers_property_scraper_fetch_html_playwright",
+      "community": 0,
+      "norm_label": "_fetch_html_playwright()"
+    },
+    {
+      "label": "_is_js_shell()",
+      "file_type": "code",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L412",
+      "id": "scrapers_property_scraper_is_js_shell",
+      "community": 0,
+      "norm_label": "_is_js_shell()"
+    },
+    {
+      "label": "_scrape_property()",
+      "file_type": "code",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L418",
+      "id": "scrapers_property_scraper_scrape_property",
+      "community": 0,
+      "norm_label": "_scrape_property()"
+    },
+    {
+      "label": "_run_async()",
+      "file_type": "code",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L478",
+      "id": "scrapers_property_scraper_run_async",
+      "community": 0,
+      "norm_label": "_run_async()"
+    },
+    {
+      "label": "run()",
+      "file_type": "code",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L514",
+      "id": "scrapers_property_scraper_run",
+      "community": 0,
+      "norm_label": "run()"
+    }
+  ],
+  "links": [
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "db.py",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "db_py",
+      "target": "seattlehousingscrapper_db_get_connection",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "db.py",
+      "source_location": "L17",
+      "weight": 1.0,
+      "source": "db_py",
+      "target": "seattlehousingscrapper_db_db_conn",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "db.py",
+      "source_location": "L29",
+      "weight": 1.0,
+      "source": "db_py",
+      "target": "seattlehousingscrapper_db_init_db",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "db.py",
+      "source_location": "L73",
+      "weight": 1.0,
+      "source": "db_py",
+      "target": "seattlehousingscrapper_db_upsert_property",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "db.py",
+      "source_location": "L123",
+      "weight": 1.0,
+      "source": "db_py",
+      "target": "seattlehousingscrapper_db_update_website_discovery",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "db.py",
+      "source_location": "L135",
+      "weight": 1.0,
+      "source": "db_py",
+      "target": "seattlehousingscrapper_db_insert_units",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "db.py",
+      "source_location": "L167",
+      "weight": 1.0,
+      "source": "db_py",
+      "target": "seattlehousingscrapper_db_get_all_properties",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "db.py",
+      "source_location": "L171",
+      "weight": 1.0,
+      "source": "db_py",
+      "target": "seattlehousingscrapper_db_get_properties_needing_discovery",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "db.py",
+      "source_location": "L178",
+      "weight": 1.0,
+      "source": "db_py",
+      "target": "seattlehousingscrapper_db_get_properties_to_scrape",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "db.py",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "db_py",
+      "target": "seattlehousingscrapper_models_property",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "db.py",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "db_py",
+      "target": "seattlehousingscrapper_models_unitlisting",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "db.py",
+      "source_location": "L18",
+      "weight": 1.0,
+      "source": "seattlehousingscrapper_db_db_conn",
+      "target": "seattlehousingscrapper_db_get_connection",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "db.py",
+      "source_location": "L30",
+      "weight": 1.0,
+      "source": "seattlehousingscrapper_db_init_db",
+      "target": "seattlehousingscrapper_db_db_conn",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "models.py",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "models_py",
+      "target": "seattlehousingscrapper_models_property",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "models.py",
+      "source_location": "L29",
+      "weight": 1.0,
+      "source": "models_py",
+      "target": "seattlehousingscrapper_models_unitlisting",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/arcgis.py",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "scrapers_arcgis_py",
+      "target": "seattlehousingscrapper_models_property",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/arcgis.py",
+      "source_location": "L17",
+      "weight": 1.0,
+      "source": "scrapers_arcgis_parse_property",
+      "target": "seattlehousingscrapper_models_property",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L24",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_py",
+      "target": "seattlehousingscrapper_models_unitlisting",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L213",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_parse_appfolio_html",
+      "target": "seattlehousingscrapper_models_unitlisting",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L262",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_parse_text_for_units",
+      "target": "seattlehousingscrapper_models_unitlisting",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L343",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_parse_units_from_html",
+      "target": "seattlehousingscrapper_models_unitlisting",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "main.py",
+      "source_location": "L22",
+      "weight": 1.0,
+      "source": "main_py",
+      "target": "seattlehousingscrapper_main_cmd_fetch",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "main.py",
+      "source_location": "L27",
+      "weight": 1.0,
+      "source": "main_py",
+      "target": "seattlehousingscrapper_main_cmd_discover",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "main.py",
+      "source_location": "L32",
+      "weight": 1.0,
+      "source": "main_py",
+      "target": "seattlehousingscrapper_main_cmd_scrape",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "main.py",
+      "source_location": "L37",
+      "weight": 1.0,
+      "source": "main_py",
+      "target": "seattlehousingscrapper_main_cmd_all",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "main.py",
+      "source_location": "L43",
+      "weight": 1.0,
+      "source": "main_py",
+      "target": "seattlehousingscrapper_main_cmd_export",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "main.py",
+      "source_location": "L80",
+      "weight": 1.0,
+      "source": "main_py",
+      "target": "seattlehousingscrapper_main_cmd_contact",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "main.py",
+      "source_location": "L85",
+      "weight": 1.0,
+      "source": "main_py",
+      "target": "seattlehousingscrapper_main_cmd_stats",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "main.py",
+      "source_location": "L102",
+      "weight": 1.0,
+      "source": "main_py",
+      "target": "seattlehousingscrapper_main_main",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "main.py",
+      "source_location": "L23",
+      "weight": 1.0,
+      "source": "main_py",
+      "target": "scrapers_arcgis_run",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "main.py",
+      "source_location": "L28",
+      "weight": 1.0,
+      "source": "main_py",
+      "target": "scrapers_website_discovery_run",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "main.py",
+      "source_location": "L33",
+      "weight": 1.0,
+      "source": "main_py",
+      "target": "scrapers_property_scraper_run",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "main.py",
+      "source_location": "L81",
+      "weight": 1.0,
+      "source": "main_py",
+      "target": "scrapers_contact_inquiry_run",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "main.py",
+      "source_location": "L38",
+      "weight": 1.0,
+      "source": "seattlehousingscrapper_main_cmd_all",
+      "target": "seattlehousingscrapper_main_cmd_fetch",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "main.py",
+      "source_location": "L24",
+      "weight": 1.0,
+      "source": "seattlehousingscrapper_main_cmd_fetch",
+      "target": "scrapers_contact_inquiry_run",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "main.py",
+      "source_location": "L39",
+      "weight": 1.0,
+      "source": "seattlehousingscrapper_main_cmd_all",
+      "target": "seattlehousingscrapper_main_cmd_discover",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "main.py",
+      "source_location": "L29",
+      "weight": 1.0,
+      "source": "seattlehousingscrapper_main_cmd_discover",
+      "target": "scrapers_contact_inquiry_run",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "main.py",
+      "source_location": "L40",
+      "weight": 1.0,
+      "source": "seattlehousingscrapper_main_cmd_all",
+      "target": "seattlehousingscrapper_main_cmd_scrape",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "main.py",
+      "source_location": "L34",
+      "weight": 1.0,
+      "source": "seattlehousingscrapper_main_cmd_scrape",
+      "target": "scrapers_contact_inquiry_run",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "main.py",
+      "source_location": "L82",
+      "weight": 1.0,
+      "source": "seattlehousingscrapper_main_cmd_contact",
+      "target": "scrapers_contact_inquiry_run",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/jsconfig.json",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "web_jsconfig_json",
+      "target": "web_jsconfig_compileroptions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/jsconfig.json",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "web_jsconfig_compileroptions",
+      "target": "web_jsconfig_compileroptions_baseurl",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/jsconfig.json",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "web_jsconfig_compileroptions",
+      "target": "web_jsconfig_compileroptions_paths",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/jsconfig.json",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "web_jsconfig_compileroptions_paths",
+      "target": "web_jsconfig_paths",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/next.config.mjs",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "web_next_config_mjs",
+      "target": "web_next_config_nextconfig",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/package.json",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "web_package_json",
+      "target": "web_package_name",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/package.json",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "web_package_json",
+      "target": "web_package_private",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/package.json",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "web_package_json",
+      "target": "web_package_scripts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/package.json",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "web_package_json",
+      "target": "web_package_dependencies",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/package.json",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "web_package_json",
+      "target": "web_package_devdependencies",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/package.json",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "web_package_scripts",
+      "target": "web_package_scripts_dev",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/package.json",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "web_package_scripts",
+      "target": "web_package_scripts_build",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/package.json",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "web_package_scripts",
+      "target": "web_package_scripts_start",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/package.json",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "web_package_dependencies",
+      "target": "web_package_dependencies_next",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/package.json",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "web_package_dependencies",
+      "target": "web_package_dependencies_react",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/package.json",
+      "source_location": "L12",
+      "weight": 1.0,
+      "source": "web_package_dependencies",
+      "target": "web_package_dependencies_react_dom",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/package.json",
+      "source_location": "L13",
+      "weight": 1.0,
+      "source": "web_package_dependencies",
+      "target": "web_package_dependencies_better_sqlite3",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/package.json",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "web_package_dependencies",
+      "target": "web_package_dependencies_leaflet",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/package.json",
+      "source_location": "L17",
+      "weight": 1.0,
+      "source": "web_package_devdependencies",
+      "target": "web_package_devdependencies_tailwindcss",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/package.json",
+      "source_location": "L18",
+      "weight": 1.0,
+      "source": "web_package_devdependencies",
+      "target": "web_package_devdependencies_autoprefixer",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/package.json",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "web_package_devdependencies",
+      "target": "web_package_devdependencies_postcss",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/app/layout.js",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "web_app_layout_js",
+      "target": "app_layout_metadata",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/app/layout.js",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "web_app_layout_js",
+      "target": "app_layout_rootlayout",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/app/page.js",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "web_app_page_js",
+      "target": "app_page_map",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/app/page.js",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "web_app_page_js",
+      "target": "app_page_default_filters",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/app/page.js",
+      "source_location": "L21",
+      "weight": 1.0,
+      "source": "web_app_page_js",
+      "target": "app_page_homepage",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/app/api/properties/route.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "web_app_api_properties_route_js",
+      "target": "properties_route_get",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "web/app/api/properties/route.js",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "properties_route_get",
+      "target": "lib_db_getmapproperties"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "web/app/api/properties/route.js",
+      "source_location": "L13",
+      "weight": 1.0,
+      "source": "properties_route_get",
+      "target": "lib_db_getneighborhoods"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "web/app/api/properties/route.js",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "properties_route_get",
+      "target": "lib_db_getproperties"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/app/api/properties/[id]/route.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "web_app_api_properties_id_route_js",
+      "target": "id_route_get",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "web/app/api/properties/[id]/route.js",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "id_route_get",
+      "target": "lib_db_getpropertybyid"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/FilterBar.js",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "web_components_filterbar_js",
+      "target": "components_filterbar_bedroom_options",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/FilterBar.js",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "web_components_filterbar_js",
+      "target": "components_filterbar_program_options",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/FilterBar.js",
+      "source_location": "L20",
+      "weight": 1.0,
+      "source": "web_components_filterbar_js",
+      "target": "components_filterbar_rent_presets",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/FilterBar.js",
+      "source_location": "L29",
+      "weight": 1.0,
+      "source": "web_components_filterbar_js",
+      "target": "components_filterbar_filterbar",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/PropertyCard.js",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "web_components_propertycard_js",
+      "target": "components_propertycard_amidot",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/PropertyCard.js",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "web_components_propertycard_js",
+      "target": "components_propertycard_bedroom_labels",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/PropertyCard.js",
+      "source_location": "L27",
+      "weight": 1.0,
+      "source": "web_components_propertycard_js",
+      "target": "components_propertycard_parsebrtypes",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/PropertyCard.js",
+      "source_location": "L37",
+      "weight": 1.0,
+      "source": "web_components_propertycard_js",
+      "target": "components_propertycard_parseavailabletypes",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/PropertyCard.js",
+      "source_location": "L46",
+      "weight": 1.0,
+      "source": "web_components_propertycard_js",
+      "target": "components_propertycard_propertycard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/PropertyCard.js",
+      "source_location": "L49",
+      "weight": 1.0,
+      "source": "components_propertycard_propertycard",
+      "target": "components_propertycard_parsebrtypes",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/PropertyCard.js",
+      "source_location": "L50",
+      "weight": 1.0,
+      "source": "components_propertycard_propertycard",
+      "target": "components_propertycard_parseavailabletypes",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/Map.js",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "web_components_map_js",
+      "target": "components_map_seattle_center",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/Map.js",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "web_components_map_js",
+      "target": "components_map_map",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/PropertyModal.js",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "web_components_propertymodal_js",
+      "target": "components_propertymodal_unit_labels",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/PropertyModal.js",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "web_components_propertymodal_js",
+      "target": "components_propertymodal_availbadge",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/PropertyModal.js",
+      "source_location": "L30",
+      "weight": 1.0,
+      "source": "web_components_propertymodal_js",
+      "target": "components_propertymodal_minimap",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/PropertyModal.js",
+      "source_location": "L52",
+      "weight": 1.0,
+      "source": "web_components_propertymodal_js",
+      "target": "components_propertymodal_propertymodal",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/lib/db.js",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "web_lib_db_js",
+      "target": "lib_db_getdb",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/lib/db.js",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "web_lib_db_js",
+      "target": "lib_db_getproperties",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/lib/db.js",
+      "source_location": "L96",
+      "weight": 1.0,
+      "source": "web_lib_db_js",
+      "target": "lib_db_getmapproperties",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/lib/db.js",
+      "source_location": "L107",
+      "weight": 1.0,
+      "source": "web_lib_db_js",
+      "target": "lib_db_getpropertybyid",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/lib/db.js",
+      "source_location": "L117",
+      "weight": 1.0,
+      "source": "web_lib_db_js",
+      "target": "lib_db_getneighborhoods",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "web/lib/db.js",
+      "source_location": "L24",
+      "weight": 1.0,
+      "source": "lib_db_getproperties",
+      "target": "lib_db_getdb",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "web/lib/db.js",
+      "source_location": "L97",
+      "weight": 1.0,
+      "source": "lib_db_getmapproperties",
+      "target": "lib_db_getdb",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "web/lib/db.js",
+      "source_location": "L108",
+      "weight": 1.0,
+      "source": "lib_db_getpropertybyid",
+      "target": "lib_db_getdb",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "web/lib/db.js",
+      "source_location": "L118",
+      "weight": 1.0,
+      "source": "lib_db_getneighborhoods",
+      "target": "lib_db_getdb",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/website_discovery.py",
+      "source_location": "L26",
+      "weight": 1.0,
+      "source": "scrapers_website_discovery_py",
+      "target": "scrapers_website_discovery_domain",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/website_discovery.py",
+      "source_location": "L33",
+      "weight": 1.0,
+      "source": "scrapers_website_discovery_py",
+      "target": "scrapers_website_discovery_is_aggregator",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/website_discovery.py",
+      "source_location": "L38",
+      "weight": 1.0,
+      "source": "scrapers_website_discovery_py",
+      "target": "scrapers_website_discovery_ensure_scheme",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/website_discovery.py",
+      "source_location": "L45",
+      "weight": 1.0,
+      "source": "scrapers_website_discovery_py",
+      "target": "scrapers_website_discovery_validate_url",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/website_discovery.py",
+      "source_location": "L58",
+      "weight": 1.0,
+      "source": "scrapers_website_discovery_py",
+      "target": "scrapers_website_discovery_search_website",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/website_discovery.py",
+      "source_location": "L77",
+      "weight": 1.0,
+      "source": "scrapers_website_discovery_py",
+      "target": "scrapers_website_discovery_process_row",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/website_discovery.py",
+      "source_location": "L100",
+      "weight": 1.0,
+      "source": "scrapers_website_discovery_py",
+      "target": "scrapers_website_discovery_run_async",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/website_discovery.py",
+      "source_location": "L123",
+      "weight": 1.0,
+      "source": "scrapers_website_discovery_py",
+      "target": "scrapers_website_discovery_run",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/website_discovery.py",
+      "source_location": "L34",
+      "weight": 1.0,
+      "source": "scrapers_website_discovery_is_aggregator",
+      "target": "scrapers_website_discovery_domain",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/website_discovery.py",
+      "source_location": "L65",
+      "weight": 1.0,
+      "source": "scrapers_website_discovery_search_website",
+      "target": "scrapers_website_discovery_is_aggregator",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/website_discovery.py",
+      "source_location": "L82",
+      "weight": 1.0,
+      "source": "scrapers_website_discovery_process_row",
+      "target": "scrapers_website_discovery_ensure_scheme",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/website_discovery.py",
+      "source_location": "L86",
+      "weight": 1.0,
+      "source": "scrapers_website_discovery_process_row",
+      "target": "scrapers_website_discovery_validate_url",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/website_discovery.py",
+      "source_location": "L90",
+      "weight": 1.0,
+      "source": "scrapers_website_discovery_process_row",
+      "target": "scrapers_website_discovery_search_website",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/website_discovery.py",
+      "source_location": "L105",
+      "weight": 1.0,
+      "source": "scrapers_website_discovery_run_async",
+      "target": "scrapers_website_discovery_process_row",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/website_discovery.py",
+      "source_location": "L136",
+      "weight": 1.0,
+      "source": "scrapers_website_discovery_run",
+      "target": "scrapers_website_discovery_run_async",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/arcgis.py",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "scrapers_arcgis_py",
+      "target": "scrapers_arcgis_parse_property",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/arcgis.py",
+      "source_location": "L37",
+      "weight": 1.0,
+      "source": "scrapers_arcgis_py",
+      "target": "scrapers_arcgis_fetch_all_properties",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/arcgis.py",
+      "source_location": "L62",
+      "weight": 1.0,
+      "source": "scrapers_arcgis_py",
+      "target": "scrapers_arcgis_run",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/arcgis.py",
+      "source_location": "L57",
+      "weight": 1.0,
+      "source": "scrapers_arcgis_fetch_all_properties",
+      "target": "scrapers_arcgis_parse_property",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/arcgis.py",
+      "source_location": "L64",
+      "weight": 1.0,
+      "source": "scrapers_arcgis_run",
+      "target": "scrapers_arcgis_fetch_all_properties",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/contact_inquiry.py",
+      "source_location": "L105",
+      "weight": 1.0,
+      "source": "scrapers_contact_inquiry_py",
+      "target": "scrapers_contact_inquiry_should_skip",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/contact_inquiry.py",
+      "source_location": "L119",
+      "weight": 1.0,
+      "source": "scrapers_contact_inquiry_py",
+      "target": "scrapers_contact_inquiry_get_label_for_input",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/contact_inquiry.py",
+      "source_location": "L144",
+      "weight": 1.0,
+      "source": "scrapers_contact_inquiry_py",
+      "target": "scrapers_contact_inquiry_fill_form",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/contact_inquiry.py",
+      "source_location": "L226",
+      "weight": 1.0,
+      "source": "scrapers_contact_inquiry_py",
+      "target": "scrapers_contact_inquiry_try_chat",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/contact_inquiry.py",
+      "source_location": "L251",
+      "weight": 1.0,
+      "source": "scrapers_contact_inquiry_py",
+      "target": "scrapers_contact_inquiry_contact_property",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/contact_inquiry.py",
+      "source_location": "L333",
+      "weight": 1.0,
+      "source": "scrapers_contact_inquiry_py",
+      "target": "scrapers_contact_inquiry_get_target_properties",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/contact_inquiry.py",
+      "source_location": "L349",
+      "weight": 1.0,
+      "source": "scrapers_contact_inquiry_py",
+      "target": "scrapers_contact_inquiry_run_async",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/contact_inquiry.py",
+      "source_location": "L442",
+      "weight": 1.0,
+      "source": "scrapers_contact_inquiry_py",
+      "target": "scrapers_contact_inquiry_run",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/contact_inquiry.py",
+      "source_location": "L268",
+      "weight": 1.0,
+      "source": "scrapers_contact_inquiry_contact_property",
+      "target": "scrapers_contact_inquiry_should_skip",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/contact_inquiry.py",
+      "source_location": "L368",
+      "weight": 1.0,
+      "source": "scrapers_contact_inquiry_run_async",
+      "target": "scrapers_contact_inquiry_should_skip",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/contact_inquiry.py",
+      "source_location": "L170",
+      "weight": 1.0,
+      "source": "scrapers_contact_inquiry_fill_form",
+      "target": "scrapers_contact_inquiry_get_label_for_input",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/contact_inquiry.py",
+      "source_location": "L283",
+      "weight": 1.0,
+      "source": "scrapers_contact_inquiry_contact_property",
+      "target": "scrapers_contact_inquiry_fill_form",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/contact_inquiry.py",
+      "source_location": "L316",
+      "weight": 1.0,
+      "source": "scrapers_contact_inquiry_contact_property",
+      "target": "scrapers_contact_inquiry_try_chat",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/contact_inquiry.py",
+      "source_location": "L378",
+      "weight": 1.0,
+      "source": "scrapers_contact_inquiry_run_async",
+      "target": "scrapers_contact_inquiry_contact_property",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/contact_inquiry.py",
+      "source_location": "L350",
+      "weight": 1.0,
+      "source": "scrapers_contact_inquiry_run_async",
+      "target": "scrapers_contact_inquiry_get_target_properties",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/contact_inquiry.py",
+      "source_location": "L443",
+      "weight": 1.0,
+      "source": "scrapers_contact_inquiry_run",
+      "target": "scrapers_contact_inquiry_run_async",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L62",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_py",
+      "target": "scrapers_property_scraper_normalize_unit_type",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L69",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_py",
+      "target": "scrapers_property_scraper_extract_rents",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L80",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_py",
+      "target": "scrapers_property_scraper_extract_sqft",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L88",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_py",
+      "target": "scrapers_property_scraper_extract_description",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L113",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_py",
+      "target": "scrapers_property_scraper_find_availability_url",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L138",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_py",
+      "target": "scrapers_property_scraper_find_pm_iframe",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L175",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_py",
+      "target": "scrapers_property_scraper_parse_appfolio_html",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L230",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_py",
+      "target": "scrapers_property_scraper_parse_text_for_units",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L279",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_py",
+      "target": "scrapers_property_scraper_parse_units_from_html",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L378",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_py",
+      "target": "scrapers_property_scraper_fetch_html_httpx",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L389",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_py",
+      "target": "scrapers_property_scraper_fetch_html_playwright",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L412",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_py",
+      "target": "scrapers_property_scraper_is_js_shell",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L418",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_py",
+      "target": "scrapers_property_scraper_scrape_property",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L478",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_py",
+      "target": "scrapers_property_scraper_run_async",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L514",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_py",
+      "target": "scrapers_property_scraper_run",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L196",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_parse_appfolio_html",
+      "target": "scrapers_property_scraper_normalize_unit_type",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L242",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_parse_text_for_units",
+      "target": "scrapers_property_scraper_normalize_unit_type",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L320",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_parse_units_from_html",
+      "target": "scrapers_property_scraper_normalize_unit_type",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L197",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_parse_appfolio_html",
+      "target": "scrapers_property_scraper_extract_rents",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L243",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_parse_text_for_units",
+      "target": "scrapers_property_scraper_extract_rents",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L321",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_parse_units_from_html",
+      "target": "scrapers_property_scraper_extract_rents",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L198",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_parse_appfolio_html",
+      "target": "scrapers_property_scraper_extract_sqft",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L244",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_parse_text_for_units",
+      "target": "scrapers_property_scraper_extract_sqft",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L322",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_parse_units_from_html",
+      "target": "scrapers_property_scraper_extract_sqft",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L285",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_parse_units_from_html",
+      "target": "scrapers_property_scraper_extract_description",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L451",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_scrape_property",
+      "target": "scrapers_property_scraper_find_availability_url",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L435",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_scrape_property",
+      "target": "scrapers_property_scraper_find_pm_iframe",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L189",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_parse_appfolio_html",
+      "target": "scrapers_property_scraper_parse_text_for_units",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L439",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_scrape_property",
+      "target": "scrapers_property_scraper_parse_appfolio_html",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L475",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_scrape_property",
+      "target": "scrapers_property_scraper_parse_units_from_html",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L426",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_scrape_property",
+      "target": "scrapers_property_scraper_fetch_html_httpx",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L429",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_scrape_property",
+      "target": "scrapers_property_scraper_fetch_html_playwright",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L428",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_scrape_property",
+      "target": "scrapers_property_scraper_is_js_shell",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scrapers/property_scraper.py",
+      "source_location": "L534",
+      "weight": 1.0,
+      "source": "scrapers_property_scraper_run",
+      "target": "scrapers_property_scraper_run_async",
+      "confidence_score": 1.0
+    }
+  ],
+  "hyperedges": []
+}

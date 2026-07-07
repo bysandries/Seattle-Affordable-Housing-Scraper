@@ -1,0 +1,330 @@
+{
+  "communities": {
+    "0": [
+      "scrapers_property_scraper_extract_description",
+      "scrapers_property_scraper_extract_rents",
+      "scrapers_property_scraper_extract_sqft",
+      "scrapers_property_scraper_fetch_html_httpx",
+      "scrapers_property_scraper_fetch_html_playwright",
+      "scrapers_property_scraper_find_availability_url",
+      "scrapers_property_scraper_find_pm_iframe",
+      "scrapers_property_scraper_is_js_shell",
+      "scrapers_property_scraper_normalize_unit_type",
+      "scrapers_property_scraper_parse_appfolio_html",
+      "scrapers_property_scraper_parse_text_for_units",
+      "scrapers_property_scraper_parse_units_from_html",
+      "scrapers_property_scraper_py",
+      "scrapers_property_scraper_run",
+      "scrapers_property_scraper_run_async",
+      "scrapers_property_scraper_scrape_property",
+      "seattlehousingscrapper_models_unitlisting"
+    ],
+    "1": [
+      "web_package_dependencies",
+      "web_package_dependencies_better_sqlite3",
+      "web_package_dependencies_leaflet",
+      "web_package_dependencies_next",
+      "web_package_dependencies_react",
+      "web_package_dependencies_react_dom",
+      "web_package_devdependencies",
+      "web_package_devdependencies_autoprefixer",
+      "web_package_devdependencies_postcss",
+      "web_package_devdependencies_tailwindcss",
+      "web_package_json",
+      "web_package_name",
+      "web_package_private",
+      "web_package_scripts",
+      "web_package_scripts_build",
+      "web_package_scripts_dev",
+      "web_package_scripts_start"
+    ],
+    "2": [
+      "id_route_get",
+      "lib_db_getdb",
+      "lib_db_getmapproperties",
+      "lib_db_getneighborhoods",
+      "lib_db_getproperties",
+      "lib_db_getpropertybyid",
+      "properties_route_get",
+      "web_app_api_properties_id_route_js",
+      "web_app_api_properties_route_js",
+      "web_lib_db_js"
+    ],
+    "3": [
+      "db_py",
+      "seattlehousingscrapper_db_db_conn",
+      "seattlehousingscrapper_db_get_all_properties",
+      "seattlehousingscrapper_db_get_connection",
+      "seattlehousingscrapper_db_get_properties_needing_discovery",
+      "seattlehousingscrapper_db_get_properties_to_scrape",
+      "seattlehousingscrapper_db_init_db",
+      "seattlehousingscrapper_db_insert_units",
+      "seattlehousingscrapper_db_update_website_discovery",
+      "seattlehousingscrapper_db_upsert_property"
+    ],
+    "4": [
+      "main_py",
+      "scrapers_contact_inquiry_run",
+      "seattlehousingscrapper_main_cmd_all",
+      "seattlehousingscrapper_main_cmd_contact",
+      "seattlehousingscrapper_main_cmd_discover",
+      "seattlehousingscrapper_main_cmd_export",
+      "seattlehousingscrapper_main_cmd_fetch",
+      "seattlehousingscrapper_main_cmd_scrape",
+      "seattlehousingscrapper_main_cmd_stats",
+      "seattlehousingscrapper_main_main"
+    ],
+    "5": [
+      "scrapers_website_discovery_domain",
+      "scrapers_website_discovery_ensure_scheme",
+      "scrapers_website_discovery_is_aggregator",
+      "scrapers_website_discovery_process_row",
+      "scrapers_website_discovery_py",
+      "scrapers_website_discovery_run",
+      "scrapers_website_discovery_run_async",
+      "scrapers_website_discovery_search_website",
+      "scrapers_website_discovery_validate_url"
+    ],
+    "6": [
+      "scrapers_contact_inquiry_contact_property",
+      "scrapers_contact_inquiry_fill_form",
+      "scrapers_contact_inquiry_get_label_for_input",
+      "scrapers_contact_inquiry_get_target_properties",
+      "scrapers_contact_inquiry_py",
+      "scrapers_contact_inquiry_run_async",
+      "scrapers_contact_inquiry_should_skip",
+      "scrapers_contact_inquiry_try_chat"
+    ],
+    "7": [
+      "components_propertycard_amidot",
+      "components_propertycard_bedroom_labels",
+      "components_propertycard_parseavailabletypes",
+      "components_propertycard_parsebrtypes",
+      "components_propertycard_propertycard",
+      "web_components_propertycard_js"
+    ],
+    "8": [
+      "models_py",
+      "scrapers_arcgis_fetch_all_properties",
+      "scrapers_arcgis_parse_property",
+      "scrapers_arcgis_py",
+      "scrapers_arcgis_run",
+      "seattlehousingscrapper_models_property"
+    ],
+    "9": [
+      "components_filterbar_bedroom_options",
+      "components_filterbar_filterbar",
+      "components_filterbar_program_options",
+      "components_filterbar_rent_presets",
+      "web_components_filterbar_js"
+    ],
+    "10": [
+      "components_propertymodal_availbadge",
+      "components_propertymodal_minimap",
+      "components_propertymodal_propertymodal",
+      "components_propertymodal_unit_labels",
+      "web_components_propertymodal_js"
+    ],
+    "11": [
+      "web_jsconfig_compileroptions",
+      "web_jsconfig_compileroptions_baseurl",
+      "web_jsconfig_compileroptions_paths",
+      "web_jsconfig_json",
+      "web_jsconfig_paths"
+    ],
+    "12": [
+      "app_page_default_filters",
+      "app_page_homepage",
+      "app_page_map",
+      "web_app_page_js"
+    ],
+    "13": [
+      "app_layout_metadata",
+      "app_layout_rootlayout",
+      "web_app_layout_js"
+    ],
+    "14": [
+      "components_map_map",
+      "components_map_seattle_center",
+      "web_components_map_js"
+    ],
+    "15": [
+      "web_next_config_mjs",
+      "web_next_config_nextconfig"
+    ],
+    "16": [
+      "config_py"
+    ],
+    "17": [
+      "web_tailwind_config_js"
+    ],
+    "18": [
+      "web_postcss_config_js"
+    ],
+    "19": [
+      "output_results_json"
+    ],
+    "20": [
+      "scrapers_init_py"
+    ]
+  },
+  "cohesion": {
+    "0": 0.27941176470588236,
+    "1": 0.11764705882352941,
+    "2": 0.3333333333333333,
+    "3": 0.24444444444444444,
+    "4": 0.35555555555555557,
+    "5": 0.4166666666666667,
+    "6": 0.5,
+    "7": 0.4666666666666667,
+    "8": 0.5333333333333333,
+    "9": 0.4,
+    "10": 0.4,
+    "11": 0.4,
+    "12": 0.5,
+    "13": 0.6666666666666666,
+    "14": 0.6666666666666666,
+    "15": 1.0,
+    "16": 1.0,
+    "17": 1.0,
+    "18": 1.0,
+    "19": 1.0,
+    "20": 1.0
+  },
+  "gods": [
+    {
+      "id": "scrapers_property_scraper_scrape_property",
+      "label": "_scrape_property()",
+      "degree": 8
+    },
+    {
+      "id": "scrapers_contact_inquiry_run",
+      "label": "run()",
+      "degree": 7
+    },
+    {
+      "id": "scrapers_property_scraper_parse_appfolio_html",
+      "label": "_parse_appfolio_html()",
+      "degree": 7
+    },
+    {
+      "id": "scrapers_property_scraper_parse_units_from_html",
+      "label": "_parse_units_from_html()",
+      "degree": 7
+    },
+    {
+      "id": "seattlehousingscrapper_models_unitlisting",
+      "label": "UnitListing",
+      "degree": 6
+    },
+    {
+      "id": "scrapers_property_scraper_parse_text_for_units",
+      "label": "_parse_text_for_units()",
+      "degree": 6
+    },
+    {
+      "id": "lib_db_getdb",
+      "label": "getDb()",
+      "degree": 5
+    },
+    {
+      "id": "scrapers_website_discovery_process_row",
+      "label": "_process_row()",
+      "degree": 5
+    },
+    {
+      "id": "scrapers_contact_inquiry_contact_property",
+      "label": "_contact_property()",
+      "degree": 5
+    },
+    {
+      "id": "scrapers_contact_inquiry_run_async",
+      "label": "run_async()",
+      "degree": 5
+    }
+  ],
+  "surprises": [
+    {
+      "source": "cmd_contact()",
+      "target": "run()",
+      "source_files": [
+        "main.py",
+        "scrapers/contact_inquiry.py"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "connects across different repos/directories; peripheral node `cmd_contact()` unexpectedly reaches hub `run()`"
+    },
+    {
+      "source": "_parse_property()",
+      "target": "Property",
+      "source_files": [
+        "scrapers/arcgis.py",
+        "models.py"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "connects across different repos/directories"
+    },
+    {
+      "source": "_parse_appfolio_html()",
+      "target": "UnitListing",
+      "source_files": [
+        "scrapers/property_scraper.py",
+        "models.py"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "connects across different repos/directories"
+    },
+    {
+      "source": "_parse_text_for_units()",
+      "target": "UnitListing",
+      "source_files": [
+        "scrapers/property_scraper.py",
+        "models.py"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "connects across different repos/directories"
+    },
+    {
+      "source": "_parse_units_from_html()",
+      "target": "UnitListing",
+      "source_files": [
+        "scrapers/property_scraper.py",
+        "models.py"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "connects across different repos/directories"
+    }
+  ],
+  "questions": [
+    {
+      "type": "bridge_node",
+      "question": "Why does `run()` connect `Community 0` to `Community 4`?",
+      "why": "High betweenness centrality (0.080) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `run()` connect `Community 4` to `Community 6`?",
+      "why": "High betweenness centrality (0.054) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `run()` connect `Community 5` to `Community 4`?",
+      "why": "High betweenness centrality (0.054) - this node is a cross-community bridge."
+    },
+    {
+      "type": "isolated_nodes",
+      "question": "What connects `baseUrl`, `@/*`, `nextConfig` to the rest of the system?",
+      "why": "25 weakly-connected nodes found - possible documentation gaps or missing edges."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `Community 1` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.11764705882352941 - nodes in this community are weakly interconnected."
+    }
+  ]
+}
