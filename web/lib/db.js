@@ -5,7 +5,7 @@ let _db = null
 
 function getDb() {
   if (!_db) {
-    const dbPath = path.join(process.cwd(), '..', 'data', 'seattle_housing.db')
+    const dbPath = path.join(process.cwd(), 'data', 'seattle_housing.db')
     _db = new Database(dbPath, { readonly: true })
   }
   return _db
