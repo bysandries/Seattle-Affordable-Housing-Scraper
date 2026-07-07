@@ -16,7 +16,7 @@ async function getDb() {
     const SQL = await initSqlJs({
       locateFile: () => wasmPath,
     })
-    const dbPath = path.join(process.cwd(), '..', 'data', 'seattle_housing.db')
+    const dbPath = path.join(process.cwd(), 'data', 'seattle_housing.db')
     const fileBuffer = fs.readFileSync(dbPath)
     _db = new SQL.Database(fileBuffer)
   }
