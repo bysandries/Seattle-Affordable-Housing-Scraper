@@ -17,7 +17,7 @@ SCRAPE_CONCURRENCY = int(os.getenv("SCRAPE_CONCURRENCY", "2"))
 REQUEST_TIMEOUT = int(os.getenv("REQUEST_TIMEOUT", "30"))
 REQUEST_DELAY = float(os.getenv("REQUEST_DELAY", "2.0"))
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "data", "seattle_housing.db")
+DB_PATH = os.path.join(os.path.dirname(__file__), "web", "data", "seattle_housing.db")
 OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "output")
 
 # Domains to skip when discovering websites via search (listing aggregators)
