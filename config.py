@@ -41,5 +41,6 @@ APPFOLIO_MASTER_URLS = [
     "https://incitypropertyholdings.appfolio.com/listings/",
     "https://redside.appfolio.com/listings/",
     "https://arboreal.appfolio.com/listings/",
-    "https://westfreemanprop.appfolio.com/listings/"
+    "https://westfreemanprop.appfolio.com/listings/",
+    "https://guidemanagement.appfolio.com/listings/"
 ]
