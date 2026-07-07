@@ -2,8 +2,9 @@ import Link from 'next/link'
 
 export default function DisclaimerPage() {
   return (
-    <div className="max-w-3xl mx-auto px-6 py-12 text-slate-800">
-      <Link href="/" className="text-blue-600 hover:underline mb-6 inline-block">← Back to Map</Link>
+    <div className="overflow-y-auto h-full w-full bg-white">
+      <div className="max-w-3xl mx-auto px-6 py-12 text-slate-800">
+        <Link href="/" className="text-blue-600 hover:underline mb-6 inline-block">← Back to Map</Link>
       <h1 className="text-3xl font-bold mb-6 text-slate-900">Legal Disclaimer</h1>
       
       <div className="space-y-6 leading-relaxed">
@@ -33,6 +34,7 @@ export default function DisclaimerPage() {
           The automated tools backing this project are designed to follow ethical web scraping practices. They respect <code>robots.txt</code> files, enforce strict concurrency limits, and utilize generous request delays to prevent undue load on external servers. Furthermore, all automated form submission and contact functionalities have been strictly disabled to ensure compliance with anti-spam legislation and ethical guidelines.
         </p>
       </div>
+    </div>
     </div>
   )
 }

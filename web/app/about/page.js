@@ -2,8 +2,9 @@ import Link from 'next/link'
 
 export default function AboutPage() {
   return (
-    <div className="max-w-3xl mx-auto px-6 py-12 text-slate-800">
-      <Link href="/" className="text-blue-600 hover:underline mb-6 inline-block">← Back to Map</Link>
+    <div className="overflow-y-auto h-full w-full bg-white">
+      <div className="max-w-3xl mx-auto px-6 py-12 text-slate-800">
+        <Link href="/" className="text-blue-600 hover:underline mb-6 inline-block">← Back to Map</Link>
       <h1 className="text-3xl font-bold mb-6 text-slate-900">About Seattle Affordable Housing Scraper</h1>
       
       <div className="space-y-6 leading-relaxed">
@@ -24,6 +25,7 @@ export default function AboutPage() {
           We do not verify this data manually. You should <strong>always contact the property or leasing office directly</strong> to confirm actual rents, income restrictions (AMI limits), and unit availability before making any housing decisions.
         </p>
       </div>
+    </div>
     </div>
   )
 }

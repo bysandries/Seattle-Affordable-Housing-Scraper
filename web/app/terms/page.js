@@ -2,8 +2,9 @@ import Link from 'next/link'
 
 export default function TermsPage() {
   return (
-    <div className="max-w-3xl mx-auto px-6 py-12 text-slate-800">
-      <Link href="/" className="text-blue-600 hover:underline mb-6 inline-block">← Back to Map</Link>
+    <div className="overflow-y-auto h-full w-full bg-white">
+      <div className="max-w-3xl mx-auto px-6 py-12 text-slate-800">
+        <Link href="/" className="text-blue-600 hover:underline mb-6 inline-block">← Back to Map</Link>
       <h1 className="text-3xl font-bold mb-6 text-slate-900">Terms of Service</h1>
       
       <div className="space-y-6 leading-relaxed">
@@ -42,6 +43,7 @@ export default function TermsPage() {
           We have not reviewed all of the sites linked to this website and are not responsible for the contents of any such linked site. The inclusion of any link does not imply endorsement by us of the site. Use of any such linked website is at the user's own risk.
         </p>
       </div>
+    </div>
     </div>
   )
 }
