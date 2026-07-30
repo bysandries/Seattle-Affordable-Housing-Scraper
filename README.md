@@ -476,6 +476,35 @@ rm -rf node_modules
 npm install
 ```
 
+## Deploying to Vercel
+
+The frontend queries the SQLite file directly via `sql.js`, so the database ships with the deployment rather than living on a separate server.
+
+**Project settings:** set **Root Directory** to `web`. Everything else is default — the framework preset detects Next.js. There is intentionally no `vercel.json`; the settings live in the dashboard.
+
+**How the data reaches the serverless function:**
+- `web/data/seattle_housing.db` is committed on purpose (see the note in `.gitignore`) — Vercel has no persistent filesystem, so the database has to be part of the build.
+- `next.config.mjs` traces both the database and `sql-wasm.wasm` into the function bundle via `outputFileTracingIncludes`. Without that, the files are pruned and every API route 500s.
+- Both API routes pin `runtime = 'nodejs'`. They read from disk, which Edge cannot do.
+- `lib/db.js` locates the wasm through `require.resolve('sql.js')` rather than assuming `process.cwd()`, because a serverless function's working directory is not guaranteed to be the project root. If an asset is ever missing it throws with every path it tried, instead of a bare `ENOENT`.
+
+**Publishing refreshed data** — the database is a build artifact, so new scrapes only go live when the file is committed:
+
+```bash
+python main.py all          # refresh everything
+python main.py stats        # sanity-check the numbers
+git add web/data/seattle_housing.db && git commit -m "chore: refresh housing data"
+git push                    # Vercel redeploys automatically
+```
+
+Run `sqlite3 web/data/seattle_housing.db "VACUUM;"` before committing to keep the file (and the git history) smaller. Note that each refresh adds another copy of a multi-megabyte binary to history; if that becomes unwieldy, generating the database during the build is the alternative.
+
+**Verifying a build locally before pushing:**
+
+```bash
+cd web && npm run build && npm start
+```
+
 ## Ethical & Legal Disclaimer
 
 This project is intended strictly for **educational and research purposes**. 

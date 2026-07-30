@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server'
 import { getProperties, getMapProperties, getNeighborhoods } from '@/lib/db'
 
+// Reads the SQLite file off disk, so this must run on Node, not Edge.
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
 export async function GET(request) {
   const { searchParams } = new URL(request.url)
   const type = searchParams.get('type')

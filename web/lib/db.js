@@ -1,24 +1,60 @@
 import path from 'path'
 import fs from 'fs'
+import { createRequire } from 'module'
 import initSqlJs from 'sql.js'
 
 let _db = null
 
+/**
+ * Resolve a bundled asset. Serverless builds do not guarantee that
+ * process.cwd() is the project root, so try each plausible location and fail
+ * with the full list rather than a bare ENOENT.
+ */
+function resolveAsset(candidates, label) {
+  for (const candidate of candidates) {
+    if (candidate && fs.existsSync(candidate)) return candidate
+  }
+  throw new Error(
+    `Could not locate ${label}. Looked in:\n  ${candidates.filter(Boolean).join('\n  ')}\n` +
+      `cwd=${process.cwd()}. Ensure next.config.mjs traces this file into the function bundle.`
+  )
+}
+
+function wasmPath() {
+  const require = createRequire(import.meta.url)
+  let fromPackage = null
+  try {
+    // Follows the actual install location, including hoisted node_modules.
+    fromPackage = path.join(path.dirname(require.resolve('sql.js')), 'sql-wasm.wasm')
+  } catch {
+    // fall through to the path-based candidates
+  }
+  return resolveAsset(
+    [
+      fromPackage,
+      path.join(process.cwd(), 'node_modules', 'sql.js', 'dist', 'sql-wasm.wasm'),
+      path.join(process.cwd(), 'web', 'node_modules', 'sql.js', 'dist', 'sql-wasm.wasm'),
+    ],
+    'sql-wasm.wasm'
+  )
+}
+
+function dbPath() {
+  return resolveAsset(
+    [
+      process.env.SEATTLE_HOUSING_DB,
+      path.join(process.cwd(), 'data', 'seattle_housing.db'),
+      path.join(process.cwd(), 'web', 'data', 'seattle_housing.db'),
+    ],
+    'seattle_housing.db'
+  )
+}
+
 async function getDb() {
   if (!_db) {
-    const wasmPath = path.join(
-      process.cwd(),
-      'node_modules',
-      'sql.js',
-      'dist',
-      'sql-wasm.wasm'
-    )
-    const SQL = await initSqlJs({
-      locateFile: () => wasmPath,
-    })
-    const dbPath = path.join(process.cwd(), 'data', 'seattle_housing.db')
-    const fileBuffer = fs.readFileSync(dbPath)
-    _db = new SQL.Database(fileBuffer)
+    const wasm = wasmPath()
+    const SQL = await initSqlJs({ locateFile: () => wasm })
+    _db = new SQL.Database(fs.readFileSync(dbPath()))
   }
   return _db
 }
