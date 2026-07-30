@@ -8,6 +8,30 @@ ARCGIS_FEATURE_URL = (
     "/GIS_Renters_Map_Update_202605/FeatureServer/1/query"
 )
 
+# Market-rate buildings with affordable units (MFTE / IZ / MHA), unit counts
+# and AMI levels per bedroom size. Published by Seattle Office of Housing.
+AFFORDABLE_UNITS_FEATURE_URL = (
+    "https://services.arcgis.com/ZOyb2t4B0UYuYNYH/arcgis/rest/services"
+    "/GIS_Renters_Map_Affordable_Units_Q2_25/FeatureServer/0/query"
+)
+
+# Official income & rent limit schedules (Seattle Office of Housing).
+# MILU covers MHA, Incentive Zoning, MFTE P3-P5, and other market-incentive units.
+RENT_LIMIT_PDFS = {
+    "MILU": (
+        "https://www.seattle.gov/documents/Departments/Housing/Shared/IncomeLimits"
+        "/2026-2027_MILU_Rental_IncomeLimits.pdf"
+    ),
+    "MFTE_P6": (
+        "https://www.seattle.gov/documents/Departments/Housing/Shared/IncomeLimits"
+        "/2026-2027_MFTE_P6_Rental_IncomeLimits.pdf"
+    ),
+    "MFTE_P7": (
+        "https://www.seattle.gov/documents/Departments/Housing/Shared/IncomeLimits"
+        "/2026-2027_MFTE_P7_Rental_IncomeLimits.pdf"
+    ),
+}
+
 USER_AGENT = os.getenv(
     "USER_AGENT",
     "SeattleHousingScrapper/1.0 (Educational Research Project) Mozilla/5.0",

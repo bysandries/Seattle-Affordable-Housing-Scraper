@@ -20,6 +20,7 @@ from bs4 import BeautifulSoup
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
+import availability
 import db
 from config import HEADERS, REQUEST_TIMEOUT, SCRAPE_CONCURRENCY, REQUEST_DELAY, USER_AGENT
 from models import UnitListing
@@ -197,14 +198,7 @@ def _parse_appfolio_html(html: str, property_id: int, source_url: str) -> list[U
         unit_type = _normalize_unit_type(text)
         rent_min, rent_max = _extract_rents(text)
         sqft = _extract_sqft(text)
-
-        date_m = re.search(
-            r"avail(?:able)?\s+(?:now|([\d/]{6,10}|[A-Z][a-z]+\s+\d{1,2},?\s*\d{2,4}))",
-            text, re.I,
-        )
-        available_from = None
-        if date_m:
-            available_from = "Now" if "now" in date_m.group(0).lower() else date_m.group(1)
+        available_from = availability.extract_from_node(block) or availability.extract_raw(text)
 
         key = (unit_type, rent_min, rent_max)
         if key in seen:
@@ -247,13 +241,7 @@ def _parse_text_for_units(
         if not rent_min and not unit_type:
             continue
 
-        date_m = re.search(
-            r"avail(?:able)?\s+(?:now|([\d/]{6,10}|[A-Z][a-z]+\s+\d{1,2},?\s*\d{2,4}))",
-            seg, re.I,
-        )
-        available_from = None
-        if date_m:
-            available_from = "Now" if "now" in date_m.group(0).lower() else date_m.group(1)
+        available_from = availability.extract_raw(seg)
 
         key = (unit_type, rent_min, rent_max)
         if key in seen:
@@ -327,14 +315,7 @@ def _parse_units_from_html(
 
         avail_m = re.search(r"(\d+)\s+avail", text, re.I)
         available_count = int(avail_m.group(1)) if avail_m else None
-
-        date_m = re.search(
-            r"avail(?:able)?\s+(?:now|([\d/]{6,10}|[A-Z][a-z]+\s+\d{1,2},?\s*\d{2,4}))",
-            text, re.I,
-        )
-        available_from = None
-        if date_m:
-            available_from = "Now" if "now" in date_m.group(0).lower() else date_m.group(1)
+        available_from = availability.extract_from_node(section) or availability.extract_raw(text)
 
         key = (unit_type, rent_min, rent_max)
         if key in seen:
@@ -416,6 +397,23 @@ def _is_js_shell(html: str) -> bool:
     return len(text) < 300
 
 
+# Anti-bot interstitials render as a normal page but contain no listing data.
+# Parsing them yields junk rows, so detect and discard instead.
+BOT_WALL_RE = re.compile(
+    r"performing security verification|checking your browser|"
+    r"verify (?:you are|you're) (?:a )?human|enable javascript and cookies to continue|"
+    r"just a moment\s*\.{3}|attention required!\s*\|\s*cloudflare|access denied",
+    re.IGNORECASE,
+)
+
+
+def _is_bot_wall(html: str) -> bool:
+    if not html:
+        return False
+    text = BeautifulSoup(html, "lxml").get_text(" ", strip=True)
+    return bool(BOT_WALL_RE.search(text[:4000]))
+
+
 ROBOTS_CACHE = {}
 
 async def _can_fetch(client: httpx.AsyncClient, url: str) -> bool:
@@ -457,6 +455,12 @@ async def _scrape_property(
             html, final_url = await _fetch_html_playwright(url)
 
         if html is None:
+            return []
+
+        if _is_bot_wall(html):
+            # The site is gating automated access; respect that rather than
+            # storing parsed fragments of the interstitial.
+            console.print(f"[yellow]Bot-protection interstitial at {final_url} — skipping[/]")
             return []
 
         # Step 2: check for PM platform iframes — highest quality data
@@ -527,8 +531,10 @@ async def _run_async(rows: list, limit: int | None) -> None:
                 try:
                     listings = await _scrape_property(client, semaphore, row["id"], url)
                     if listings:
+                        for l in listings:
+                            availability.annotate(l)
                         with db.db_conn() as conn:
-                            db.insert_units(conn, listings)
+                            db.insert_units_snapshot(conn, row["id"], listings, source="site")
                 except Exception as e:
                     console.print(f"[red]Error scraping {url}: {e}[/]")
                 finally:

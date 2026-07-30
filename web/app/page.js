@@ -1,7 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import FilterBar from '@/components/FilterBar'
 import PropertyCard from '@/components/PropertyCard'
 import PropertyModal from '@/components/PropertyModal'
@@ -15,6 +15,7 @@ const DEFAULT_FILTERS = {
   bedroom: '',
   maxRent: 0,
   hasListings: false,
+  availableNow: false,
   page: 1,
 }
 
@@ -80,6 +81,33 @@ export default function HomePage() {
   }, [])
 
   const clearFilters = () => setFilters(DEFAULT_FILTERS)
+
+  // Mirror the list query's filter semantics (lib/db.js getProperties) so the
+  // map always shows the same set of properties as the list.
+  const visibleMapProperties = useMemo(() => {
+    const q = filters.search.trim().toLowerCase()
+    return mapProperties.filter((p) => {
+      if (filters.hasListings && !(p.listing_count > 0)) return false
+      if (filters.availableNow && !(p.available_now_count > 0)) return false
+      if (filters.neighborhood && p.neighborhood !== filters.neighborhood) return false
+      if (filters.program && p.program !== filters.program) return false
+      if (
+        filters.bedroom &&
+        !(p.br_types || '').toLowerCase().includes(filters.bedroom.toLowerCase())
+      )
+        return false
+      if (filters.maxRent > 0 && p.min_rent != null && p.min_rent > filters.maxRent)
+        return false
+      if (
+        q &&
+        ![p.building_name, p.address, p.neighborhood].some((s) =>
+          (s || '').toLowerCase().includes(q)
+        )
+      )
+        return false
+      return true
+    })
+  }, [mapProperties, filters])
 
   const hasActiveFilters = Object.entries(filters).some(
     ([k, v]) => k !== 'page' && v !== DEFAULT_FILTERS[k]
@@ -245,7 +273,7 @@ export default function HomePage() {
             }`}
           >
             <Map
-              properties={mapProperties}
+              properties={visibleMapProperties}
               highlightId={selectedId}
               onSelect={handleMapSelect}
             />

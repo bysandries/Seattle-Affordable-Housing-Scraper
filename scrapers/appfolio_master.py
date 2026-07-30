@@ -11,6 +11,7 @@ import httpx
 from bs4 import BeautifulSoup
 from rich.console import Console
 
+import availability
 import db
 from config import HEADERS, APPFOLIO_MASTER_URLS
 from models import UnitListing
@@ -62,8 +63,18 @@ async def _scrape_appfolio_master(client: httpx.AsyncClient, url: str, propertie
         
     results = []
     now = datetime.now(timezone.utc).isoformat()
-    
+    seen_listing_ids: set[str] = set()
+
     for div in listings:
+        # AppFolio renders desktop and mobile variants of the same listing, so
+        # dedupe on the stable per-listing id before doing any parsing.
+        id_link = div.find("a", attrs={"data-listing-id": True})
+        if id_link:
+            listing_id = id_link["data-listing-id"]
+            if listing_id in seen_listing_ids:
+                continue
+            seen_listing_ids.add(listing_id)
+
         # Address
         addr_span = div.find(class_=lambda c: c and "js-listing-address" in c)
         if not addr_span:
@@ -114,9 +125,7 @@ async def _scrape_appfolio_master(client: httpx.AsyncClient, url: str, propertie
         avail = None
         if avail_span:
             avail_text = avail_span.get_text(strip=True)
-            avail_m = re.search(r"now|([\d/]{6,10}|[A-Z][a-z]+\s+\d{1,2},?\s*\d{2,4})", avail_text, re.I)
-            if avail_m:
-                avail = "Now" if "now" in avail_m.group(0).lower() else (avail_m.group(1) or avail_m.group(0))
+            avail = availability.extract_raw(avail_text, field_is_availability=True)
         
         results.append(UnitListing(
             property_id=property_id,
@@ -145,8 +154,14 @@ async def _run_async(properties: list[dict]):
             console.print(f"  -> Found {len(listings)} matching listings")
             
         if all_listings:
+            for l in all_listings:
+                availability.annotate(l)
+            by_property: dict[int, list] = {}
+            for l in all_listings:
+                by_property.setdefault(l.property_id, []).append(l)
             with db.db_conn() as conn:
-                db.insert_units(conn, all_listings)
+                for pid, listings in by_property.items():
+                    db.insert_units_snapshot(conn, pid, listings, source="appfolio-master")
             console.print(f"[bold green]Saved {len(all_listings)} units from AppFolio portals.[/]")
 
 def run():

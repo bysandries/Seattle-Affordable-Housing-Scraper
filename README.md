@@ -110,8 +110,96 @@ python main.py scrape --limit 10   # Test with 10 properties
 - Falls back to Playwright for JavaScript-heavy sites
 - Detects property management platform iframes (AppFolio, Entrata, Yardi, RealPage, Knock) and queries them directly
 - Extracts: unit type (studio, 1BR, 2BR, 3BR), rent range, square footage, availability date, amenities
+- Skips anti-bot interstitials rather than parsing them into junk rows. Some sites (notably the Bellwether Housing subdomains) sit behind a Cloudflare challenge; where it does not clear on its own, those listings are simply not collected — the challenge is not circumvented
 - Stores unit listings in the database with foreign key to properties
 - Runs with configurable concurrency (default: 10 workers)
+
+### MFTE / IZ / MHA Buildings
+
+Fetches all market-rate buildings offering affordable units under the MFTE (Multifamily Tax Exemption), IZ (Incentive Zoning), and MHA (Mandatory Housing Affordability) programs:
+
+```bash
+python main.py affordable          # aliases: mfte, mha
+```
+
+**What it does:**
+- Queries the Office of Housing's `GIS_Renters_Map_Affordable_Units` ArcGIS layer (~340 buildings) — the city publishes all three programs in one dataset
+- Captures per-building MFTE/IZ/MHA unit counts, AMI levels per bedroom size, and per-program expiration dates (MHA units are typically restricted ~75 years, e.g. "2037 (MFTE) 2097 (MHA)")
+- Matches each building to the main `properties` table by address/name and stores in `affordable_buildings`
+
+### Income & Rent Limits
+
+Downloads and parses the official Seattle Office of Housing income & rent limit schedules (PDFs, updated annually each May):
+
+```bash
+python main.py rentlimits
+```
+
+**What it does:**
+- Fetches three schedules: **MILU** (applies to MHA, Incentive Zoning, MFTE P3–P5), **MFTE P6**, and **MFTE P7**
+- Parses the maximum-rent table (unit size × %AMI) into the `rent_limits` table
+- Parses the income-limits table (family size × %AMI) into the `income_limits` table
+
+### Availability Dates
+
+Every scraped unit gets its availability normalized into a comparable form, stored alongside the raw text:
+
+| column | meaning |
+|---|---|
+| `available_from` | raw text as published, e.g. `"Now"`, `"8/17/26"`, `"Waitlist Closed 6/5/2026"` |
+| `available_date` | normalized ISO date (`YYYY-MM-DD`), or empty when no date was published |
+| `availability_status` | `now` · `future` · `waitlist` · `unknown` |
+| `is_current` | `1` for the newest scrape of a property, `0` for retained history |
+| `source` | which ingest path wrote the row (`site`, `appfolio-master`, `lihi`) |
+
+Normalization lives in `availability.py` and handles the formats these sites actually use — `9/1/26`, `09/01/2026`, `2026-09-01`, `Sept 1st`, `September 1, 2026`, `Available Now`, `Move-in ready`, `Jan 2026` — plus anti-patterns that must *not* become dates (`parking available 24/7`, `3 available units`). Dates published without a year roll forward to the next occurrence.
+
+**Snapshot semantics:** re-scraping never mixes old and new listings. Each run marks its rows `is_current = 1` and demotes that property's previous rows from the same source, so live-availability queries stay clean while history is preserved. Currency is scoped per source because the per-site scraper and the AppFolio portal scraper both write units for the same property.
+
+```sql
+-- units available now or soon, freshest first
+SELECT * FROM units
+WHERE is_current = 1 AND availability_status IN ('now', 'future')
+ORDER BY available_date;
+```
+
+### LIHI Waitlist Status
+
+```bash
+python main.py lihi
+```
+
+LIHI operates ~37 buildings in this dataset. They are fully affordable, so availability is published as waitlist status rather than per-unit vacancy. All their buildings appear on one server-rendered index page, so a single request covers the portfolio.
+
+**Note on coverage:** only a handful of LIHI buildings publish a status at any given time, and only some of those are Seattle properties in this dataset — a small yield is the expected result, not a failure.
+
+### Qualification Info
+
+Computes, per building and bedroom size, what an affordable unit rents for and what household income qualifies — the same numbers leasing offices quote (e.g. "1BR $1,233/mo at 40% AMI, max income $46,040 for a household of 1"):
+
+```bash
+python main.py qualify
+```
+
+**What it does:**
+- Joins each building's AMI-by-bedroom data against the official rent & income schedules into `unit_qualifications`
+- MHA and IZ units follow the MILU schedule; the MFTE phase (P6/P7/MILU) is estimated from the exemption's 12-year term
+- Re-runs automatically after `affordable` and `rentlimits`
+- Shown in the web app's property modal as an "Affordable Unit Qualification" card
+
+### Website Affordable-Housing Pages
+
+Scrapes each affordable building's own website for publicly posted MFTE/MHA info:
+
+```bash
+python main.py pages              # all buildings (throttled, ~15 min)
+python main.py pages --limit 20   # test run
+```
+
+**What it does:**
+- Fetches the homepage plus up to 4 likely subpages (affordable housing, floor plans, leasing) per site
+- Records program mentions (MFTE/MHA/affordable), waitlist mentions, posted AMI percentages, and a context snippet into `affordable_page_info`
+- Read-only and polite: robots.txt-aware, throttled, no forms or contact — automated outreach stays disabled by design
 
 
 ### Running the Full Pipeline
@@ -135,6 +223,11 @@ python main.py export
 - `output/results.csv` - Merged view: one row per unit listing with property info
 - `output/results.json` - Same data in JSON format
 - `output/properties.csv` - All properties from the database
+- `output/affordable_buildings.csv` - MFTE/IZ/MHA buildings with unit counts and AMI levels
+- `output/affordable_units_by_program.csv` - One row per building × program (MFTE/IZ/MHA) with unit count, per-program expiration, and the rent-limit schedule that applies (MHA/IZ follow MILU)
+- `output/unit_qualifications.csv` - Per building × bedroom × program: max affordable rent and qualifying income limits (household of 1–4)
+- `output/affordable_page_info.csv` - Per building: MFTE/MHA/waitlist mentions found on the property's own website
+- `output/rent_limits.csv` - Official maximum rents by program, unit size, and %AMI
 
 ### Database Statistics
 
@@ -160,7 +253,7 @@ cd web
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view the application.
+Open [http://localhost:0616](http://localhost:0616) to view the application.
 
 **Features:**
 - **Interactive Map** - Leaflet map with color-coded markers (amber: Mixed Market, violet: Fully Affordable)

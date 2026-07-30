@@ -5,9 +5,9 @@
     "onlyBuiltDependencies": []
   },
   "scripts": {
-    "dev": "next dev --port 3000",
+    "dev": "next dev --port 0616",
     "build": "next build",
-    "start": "next start --port 3000"
+    "start": "next start --port 0616"
   },
   "dependencies": {
     "next": "14.2.30",

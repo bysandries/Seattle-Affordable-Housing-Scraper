@@ -43,7 +43,7 @@ export default function Map({ properties, highlightId, onSelect }) {
   // Render markers once map is ready and properties are available
   useEffect(() => {
     const map = mapRef.current
-    if (!mapReady || !map || !properties?.length) return
+    if (!mapReady || !map || !properties) return
 
     import('leaflet').then((L) => {
       // Remove old markers

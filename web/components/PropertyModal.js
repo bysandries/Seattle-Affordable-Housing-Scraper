@@ -11,18 +11,56 @@ const UNIT_LABELS = {
   unknown: 'Unit',
 }
 
-function AvailBadge({ from }) {
-  if (!from) return <span className="text-slate-400 text-xs">—</span>
-  const isNow = /now/i.test(from)
+const AVAIL_STYLES = {
+  now: 'bg-emerald-100 text-emerald-700',
+  future: 'bg-blue-50 text-blue-700',
+  waitlist: 'bg-amber-50 text-amber-700',
+}
+
+function formatDate(iso) {
+  if (!iso) return null
+  // Parse as local, not UTC, so the date never shifts a day backwards.
+  const [y, m, d] = iso.split('-').map(Number)
+  if (!y || !m || !d) return null
+  return new Date(y, m - 1, d).toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
+}
+
+function AvailBadge({ unit }) {
+  // availability_status is frozen at scrape time, so a date that has since
+  // passed would still read "future". Re-derive it against today.
+  const today = new Date()
+  const todayIso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+  let status = unit.availability_status
+  if (status === 'future' && unit.available_date && unit.available_date <= todayIso) {
+    status = 'now'
+  }
+  const pretty = formatDate(unit.available_date)
+
+  if (!status || status === 'unknown') {
+    // Fall back to whatever raw text was scraped, if anything.
+    return unit.available_from ? (
+      <span className="text-xs text-slate-500">{unit.available_from}</span>
+    ) : (
+      <span className="text-slate-400 text-xs">—</span>
+    )
+  }
+
+  const label =
+    status === 'now'
+      ? 'Available now'
+      : status === 'waitlist'
+      ? pretty
+        ? `Waitlist · ${pretty}`
+        : 'Waitlist'
+      : pretty || unit.available_from
+
   return (
-    <span
-      className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-        isNow
-          ? 'bg-emerald-100 text-emerald-700'
-          : 'bg-blue-50 text-blue-700'
-      }`}
-    >
-      {isNow ? 'Available now' : from}
+    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${AVAIL_STYLES[status] ?? 'bg-slate-100 text-slate-600'}`}>
+      {label}
     </span>
   )
 }
@@ -209,7 +247,7 @@ export default function PropertyModal({ propertyId, onClose }) {
                               : <span className="text-xs font-medium text-blue-600">Contact for Pricing</span>}
                           </td>
                           <td className="px-4 py-3 text-right">
-                            <AvailBadge from={u.available_from} />
+                            <AvailBadge unit={u} />
                           </td>
                         </tr>
                       ))}
@@ -237,6 +275,83 @@ export default function PropertyModal({ propertyId, onClose }) {
                     for current availability.
                   </span>
                 )}
+              </div>
+            )}
+
+            {/* Affordable unit qualification */}
+            {data.qualifications?.length > 0 && (
+              <div>
+                <h3 className="font-semibold text-slate-800 mb-1 flex items-center gap-2 flex-wrap">
+                  Affordable Unit Qualification
+                  {data.affordable?.total_mfte_units > 0 && (
+                    <span className="bg-blue-100 text-blue-700 text-xs font-medium px-2 py-0.5 rounded-full">
+                      {data.affordable.total_mfte_units} MFTE
+                    </span>
+                  )}
+                  {data.affordable?.total_iz_units > 0 && (
+                    <span className="bg-violet-100 text-violet-700 text-xs font-medium px-2 py-0.5 rounded-full">
+                      {data.affordable.total_iz_units} IZ
+                    </span>
+                  )}
+                  {data.affordable?.total_mha_units > 0 && (
+                    <span className="bg-teal-100 text-teal-700 text-xs font-medium px-2 py-0.5 rounded-full">
+                      {data.affordable.total_mha_units} MHA
+                    </span>
+                  )}
+                </h3>
+                {data.pageInfo?.has_waitlist_mention === 1 && (
+                  <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-2">
+                    ⏳ This property's website mentions a waitlist.
+                    {data.pageInfo.info_url && (
+                      <>
+                        {' '}
+                        <a
+                          href={data.pageInfo.info_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline hover:text-amber-900"
+                        >
+                          See details ↗
+                        </a>
+                      </>
+                    )}
+                  </p>
+                )}
+                <div className="border border-slate-200 rounded-xl overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead className="bg-slate-50 border-b border-slate-200">
+                      <tr>
+                        <th className="text-left px-3 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Unit</th>
+                        <th className="text-left px-3 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Program</th>
+                        <th className="text-right px-3 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">AMI</th>
+                        <th className="text-right px-3 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Max Rent</th>
+                        <th className="text-right px-3 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Max Income (1p / 2p)</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {data.qualifications.map((q, i) => (
+                        <tr key={i} className="hover:bg-slate-50">
+                          <td className="px-3 py-2.5 font-medium text-slate-800">{q.bedroom}</td>
+                          <td className="px-3 py-2.5 text-slate-500">{q.program}</td>
+                          <td className="px-3 py-2.5 text-right text-slate-500">{q.ami_pct}%</td>
+                          <td className="px-3 py-2.5 text-right font-semibold text-slate-800">
+                            {q.max_rent ? `$${q.max_rent.toLocaleString()}/mo` : '—'}
+                          </td>
+                          <td className="px-3 py-2.5 text-right text-slate-500 text-xs">
+                            {q.income_limit_1
+                              ? `$${q.income_limit_1.toLocaleString()} / $${q.income_limit_2?.toLocaleString() ?? '—'}`
+                              : '—'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <p className="text-xs text-slate-400 mt-2">
+                  Estimated from the Seattle Office of Housing 2026–2027 rent &amp; income
+                  schedules. Actual rents, unit assignments, and MFTE phase may differ —
+                  verify with the property.
+                </p>
               </div>
             )}
 

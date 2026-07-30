@@ -20,6 +20,7 @@ export async function GET(request) {
     bedroom: searchParams.get('bedroom') || '',
     maxRent: Number(searchParams.get('maxRent')) || 0,
     hasListings: searchParams.get('hasListings') === 'true',
+    availableNow: searchParams.get('availableNow') === 'true',
     page: Number(searchParams.get('page')) || 1,
     limit: 48,
   })

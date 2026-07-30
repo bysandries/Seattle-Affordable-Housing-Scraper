@@ -38,6 +38,7 @@ export default function FilterBar({ filters, neighborhoods, total, onChange }) {
     filters.bedroom,
     filters.maxRent > 0,
     filters.hasListings,
+    filters.availableNow,
   ].filter(Boolean).length
 
   return (
@@ -83,6 +84,18 @@ export default function FilterBar({ filters, neighborhoods, total, onChange }) {
           }`}
         >
           ✓ Live pricing only
+        </button>
+
+        <button
+          onClick={() => set('availableNow', !filters.availableNow)}
+          className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ${
+            filters.availableNow
+              ? 'bg-teal-600 text-white border-teal-600'
+              : 'bg-white text-slate-600 border-slate-200 hover:border-teal-400'
+          }`}
+          title="Units listed as available now, or whose availability date has arrived"
+        >
+          🔑 Available now
         </button>
 
         {PROGRAM_OPTIONS.slice(1).map((opt) => (

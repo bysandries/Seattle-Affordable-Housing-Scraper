@@ -34,6 +34,12 @@ function parseBrTypes(brTypes) {
     .filter((v, i, a) => a.indexOf(v) === i)
 }
 
+function formatShortDate(iso) {
+  const [y, m, d] = (iso || '').split('-').map(Number)
+  if (!y || !m || !d) return iso
+  return new Date(y, m - 1, d).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+}
+
 function parseAvailableTypes(types) {
   if (!types) return []
   return types
@@ -124,7 +130,19 @@ export default function PropertyCard({ property, isSelected, onClick }) {
       <div className="mt-1 pt-2 border-t border-slate-100">
         <div className="flex items-center justify-between">
           <div className="text-xs text-slate-500">
-            {hasListings && liveTypes.length > 0 ? `${liveTypes.join(' · ')} available` : 'Check availability'}
+            {property.available_now_count > 0 ? (
+              <span className="text-emerald-600 font-medium">
+                {property.available_now_count} available now
+              </span>
+            ) : property.next_available_date ? (
+              <span className="text-blue-600 font-medium">
+                From {formatShortDate(property.next_available_date)}
+              </span>
+            ) : hasListings && liveTypes.length > 0 ? (
+              `${liveTypes.join(' · ')} available`
+            ) : (
+              'Check availability'
+            )}
           </div>
           {property.min_rent ? (
             <div className="text-sm font-semibold text-slate-800">
