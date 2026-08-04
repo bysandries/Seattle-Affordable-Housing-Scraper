@@ -2,6 +2,7 @@ import path from 'path'
 import fs from 'fs'
 import { createRequire } from 'module'
 import initSqlJs from 'sql.js'
+import { bedroomAliases } from '@/lib/bedrooms'
 
 let _db = null
 
@@ -176,8 +177,9 @@ export async function getProperties({
     params.push(program)
   }
   if (bedroom) {
-    whereParts.push('p.br_types LIKE ?')
-    params.push(`%${bedroom}%`)
+    const aliases = bedroomAliases(bedroom)
+    whereParts.push('(' + aliases.map(() => 'p.br_types LIKE ?').join(' OR ') + ')')
+    for (const a of aliases) params.push(`%${a}%`)
   }
   // Looked up by key, so an unknown value is ignored rather than interpolated.
   const withAffordable = hasAffordableTable(db)

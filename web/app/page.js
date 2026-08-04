@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import FilterBar from '@/components/FilterBar'
 import PropertyCard from '@/components/PropertyCard'
 import PropertyModal from '@/components/PropertyModal'
+import { bedroomAliases } from '@/lib/bedrooms'
 
 const Map = dynamic(() => import('@/components/Map'), { ssr: false })
 
@@ -103,11 +104,12 @@ export default function HomePage() {
         if (filters.incentive === 'none' ? inAny : !p[`has_${filters.incentive}`])
           return false
       }
-      if (
-        filters.bedroom &&
-        !(p.br_types || '').toLowerCase().includes(filters.bedroom.toLowerCase())
-      )
-        return false
+      if (filters.bedroom) {
+        // Mirrors BEDROOM_ALIASES in lib/db.js — the Seattle layer spells these
+        // "1-Bedroom" while scraped statewide rows use "1br".
+        const types = (p.br_types || '').toLowerCase()
+        if (!bedroomAliases(filters.bedroom).some((a) => types.includes(a))) return false
+      }
       if (filters.maxRent > 0 && p.min_rent != null && p.min_rent > filters.maxRent)
         return false
       if (
