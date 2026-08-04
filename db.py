@@ -6,6 +6,7 @@ from config import APPFOLIO_MASTER_URLS, DB_PATH
 from models import (
     AffordableBuilding,
     AffordablePageInfo,
+    AppfolioProperty,
     IncomeLimit,
     Property,
     RentLimit,
@@ -70,6 +71,34 @@ def _migrate_units_columns(conn: sqlite3.Connection) -> None:
         recompute_current_flags(conn)
 
 
+def _migrate_properties_columns(conn: sqlite3.Connection) -> None:
+    """Add location/provenance columns to an existing properties table.
+
+    The table originally held only the Seattle Office of Housing dataset, so
+    city and state were implicit. Statewide listings harvested from AppFolio
+    portals live alongside them, distinguished by `data_source`.
+    """
+    if not conn.execute(
+        "SELECT 1 FROM sqlite_master WHERE type='table' AND name='properties'"
+    ).fetchone():
+        return
+
+    existing = {r["name"] for r in conn.execute("PRAGMA table_info(properties)")}
+    added = []
+    for col, decl in (("city", "TEXT"), ("state", "TEXT"), ("data_source", "TEXT")):
+        if col not in existing:
+            conn.execute(f"ALTER TABLE properties ADD COLUMN {col} {decl}")
+            added.append(col)
+
+    if added:
+        # Everything predating these columns came from the Seattle dataset.
+        conn.execute(
+            "UPDATE properties SET city = COALESCE(city, 'Seattle'), "
+            "state = COALESCE(state, 'WA'), "
+            "data_source = COALESCE(data_source, 'seattle_oh')"
+        )
+
+
 def recompute_current_flags(conn: sqlite3.Connection) -> None:
     """Mark the newest scrape of each (property_id, source) pair as current."""
     conn.execute(
@@ -95,12 +124,16 @@ def init_db() -> None:
             conn.execute("DROP INDEX IF EXISTS idx_mfte_property_id")
 
         _migrate_units_columns(conn)
+        _migrate_properties_columns(conn)
         conn.executescript("""
             CREATE TABLE IF NOT EXISTS properties (
                 id INTEGER PRIMARY KEY,
                 building_name TEXT,
                 address TEXT,
                 neighborhood TEXT,
+                city TEXT,
+                state TEXT,
+                data_source TEXT,
                 program TEXT,
                 owner_management TEXT,
                 phone TEXT,
@@ -287,6 +320,78 @@ def upsert_property(conn: sqlite3.Connection, p: Property) -> None:
     )
 
 
+def replace_appfolio_properties(
+    conn: sqlite3.Connection, props: list["AppfolioProperty"]
+) -> tuple[int, int]:
+    """Refresh the statewide AppFolio-derived properties.
+
+    These rows exist only because a portal is currently advertising the
+    building, so any that no longer appear are deleted along with their units
+    rather than left behind as phantom listings. Returns (upserted, deleted).
+    """
+    for p in props:
+        conn.execute(
+            """
+            INSERT INTO properties (
+                id, building_name, address, neighborhood, city, state,
+                data_source, program, owner_management, website, br_types,
+                lat, long, website_status, last_fetched_at
+            ) VALUES (
+                :id, :building_name, :address, :city, :city, :state,
+                'appfolio', 'Market Rate', :owner_management, :website,
+                :br_types, :lat, :long, 'ok', :last_fetched_at
+            )
+            ON CONFLICT(id) DO UPDATE SET
+                building_name=excluded.building_name,
+                address=excluded.address,
+                neighborhood=excluded.neighborhood,
+                city=excluded.city,
+                state=excluded.state,
+                owner_management=excluded.owner_management,
+                website=excluded.website,
+                br_types=excluded.br_types,
+                lat=excluded.lat,
+                long=excluded.long,
+                last_fetched_at=excluded.last_fetched_at
+            """,
+            {
+                "id": p.id,
+                "building_name": p.building_name,
+                "address": p.address,
+                "city": p.city,
+                "state": p.state,
+                "owner_management": p.owner_management,
+                "website": p.website,
+                "br_types": p.br_types,
+                "lat": p.lat,
+                "long": p.long,
+                "last_fetched_at": p.last_fetched_at,
+            },
+        )
+
+    # Temp table instead of a NOT IN (...) list — the id set routinely exceeds
+    # SQLite's bound-parameter limit.
+    conn.execute("CREATE TEMP TABLE IF NOT EXISTS _seen_appfolio (id INTEGER PRIMARY KEY)")
+    conn.execute("DELETE FROM _seen_appfolio")
+    conn.executemany("INSERT OR IGNORE INTO _seen_appfolio (id) VALUES (?)", [(p.id,) for p in props])
+
+    conn.execute(
+        """
+        DELETE FROM units WHERE property_id IN (
+            SELECT id FROM properties
+            WHERE data_source = 'appfolio' AND id NOT IN (SELECT id FROM _seen_appfolio)
+        )
+        """
+    )
+    cur = conn.execute(
+        "DELETE FROM properties WHERE data_source = 'appfolio' "
+        "AND id NOT IN (SELECT id FROM _seen_appfolio)"
+    )
+    deleted = cur.rowcount if cur.rowcount and cur.rowcount > 0 else 0
+    conn.execute("DROP TABLE IF EXISTS _seen_appfolio")
+    return len(props), deleted
+
+
 def update_website_discovery(
     conn: sqlite3.Connection,
     property_id: int,
@@ -368,6 +473,22 @@ def insert_units_snapshot(
     )
     conn.executemany(_INSERT_UNIT_SQL, [_unit_params(u, source) for u in deduped])
     return len(deduped)
+
+
+def demote_stale_units(conn: sqlite3.Connection, source: str, run_scraped_at: str) -> int:
+    """Demote rows from `source` that this run did not rewrite.
+
+    insert_units_snapshot only demotes a property that receives new listings, so
+    a property that drops out of a source entirely — because the portal stopped
+    advertising it, or because a matching fix reassigned its listings elsewhere —
+    would otherwise keep stale rows flagged current forever.
+    """
+    cur = conn.execute(
+        "UPDATE units SET is_current = 0 "
+        "WHERE IFNULL(source, 'site') = ? AND is_current = 1 AND scraped_at < ?",
+        (source, run_scraped_at),
+    )
+    return cur.rowcount if cur.rowcount and cur.rowcount > 0 else 0
 
 
 def replace_affordable_buildings(conn: sqlite3.Connection, props: list[AffordableBuilding]) -> None:

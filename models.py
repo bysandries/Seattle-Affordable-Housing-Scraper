@@ -26,6 +26,27 @@ class Property:
 
 
 @dataclass
+class AppfolioProperty:
+    """A building harvested from an AppFolio portal that is not in the Seattle
+    Office of Housing dataset — i.e. statewide market-rate inventory.
+
+    `id` is negative and derived from the address so it stays stable across runs
+    and cannot collide with the positive parcel ids of the Seattle dataset.
+    """
+    id: int
+    building_name: str
+    address: str
+    city: str
+    state: str
+    website: str
+    br_types: str
+    lat: float
+    long: float
+    owner_management: str = ""
+    last_fetched_at: Optional[str] = None
+
+
+@dataclass
 class AffordableBuilding:
     """Market-rate building with affordable units (MFTE / IZ / MHA)."""
     building_name: str

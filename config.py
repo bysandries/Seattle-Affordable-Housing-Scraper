@@ -61,10 +61,57 @@ SKIP_DOMAINS = {
 
 HEADERS = {"User-Agent": USER_AGENT, "Accept-Language": "en-US,en;q=0.9"}
 
+# AppFolio portals for PM companies operating in Seattle. Scraping the master
+# portal reaches every building a company manages, not just the one property
+# whose own site happens to embed the widget — so these are worth listing even
+# when the per-site scraper already covers one of their buildings.
+#
+# Found two ways: sweeping every property website in the DB for *.appfolio.com,
+# and searching the web for Seattle AppFolio listing portals. Each was verified
+# to return listings that fuzzy-match at least one property in our dataset.
+# Ordered by how many units they matched at discovery (2026-08-04).
 APPFOLIO_MASTER_URLS = [
     "https://incitypropertyholdings.appfolio.com/listings/",
     "https://redside.appfolio.com/listings/",
     "https://arboreal.appfolio.com/listings/",
     "https://westfreemanprop.appfolio.com/listings/",
-    "https://guidemanagement.appfolio.com/listings/"
+    "https://guidemanagement.appfolio.com/listings/",
+    "https://pacificcrest.appfolio.com/listings/",
+    "https://olympicmanagement.appfolio.com/listings/",
+    "https://cornellandassociates.appfolio.com/listings/",
+    "https://kozproperties.appfolio.com/listings/",
+    "https://rpa.appfolio.com/listings/",
+    "https://maingatemgmt.appfolio.com/listings/",
+    "https://mapleleafmanagement.appfolio.com/listings/",
+    "https://wallspropmgmt.appfolio.com/listings/",
+    "https://northwest.appfolio.com/listings/",
+    "https://westlakeassociatesinc.appfolio.com/listings/",
+    "https://pacificcrestre.appfolio.com/listings/",
+    "https://milestoneproperties.appfolio.com/listings/",
+    "https://pilotnw.appfolio.com/listings/",
+    "https://davis.appfolio.com/listings/",
+    "https://ballardpm.appfolio.com/listings/",
+    "https://hunters.appfolio.com/listings/",
+    "https://spma.appfolio.com/listings/",
+    "https://livingbode.appfolio.com/listings/",
+    "https://hive.appfolio.com/listings/",
+    "https://pacificviewrealestate.appfolio.com/listings/",
+    "https://moormanproperties.appfolio.com/listings/",
+    # Currently empty or all-unmatched, but each was found embedded on a
+    # property's own website, so they manage buildings in the dataset and will
+    # match once they post a vacancy.
+    "https://junctionflats.appfolio.com/listings/",
+    "https://cliffsidellc.appfolio.com/listings/",
 ]
+
+# Official websites for individual buildings found via an AppFolio portal.
+# The portal only exposes its own listing-detail URL, so a building's real site
+# is recorded here and used in preference. Keyed by the normalized building key
+# that scrapers.appfolio_master._building_key produces: "street|city|state".
+#
+# Note these sites are not scraped directly — their availability pages are
+# JavaScript widgets fed by the same AppFolio portal, so the portal is both the
+# cheaper and the more complete source. This only fixes where the app links to.
+PROPERTY_SITE_OVERRIDES = {
+    "4301 alderwood mall boulevard|lynnwood|WA": "https://www.kozonalderwoodmallblvd.com/availability",
+}
