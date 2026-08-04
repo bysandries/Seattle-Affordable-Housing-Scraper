@@ -11,7 +11,9 @@ const Map = dynamic(() => import('@/components/Map'), { ssr: false })
 const DEFAULT_FILTERS = {
   search: '',
   neighborhood: '',
+  city: '',
   program: '',
+  incentive: '',
   bedroom: '',
   maxRent: 0,
   hasListings: false,
@@ -26,6 +28,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true)
   const [mapProperties, setMapProperties] = useState([])
   const [neighborhoods, setNeighborhoods] = useState([])
+  const [cities, setCities] = useState([])
   const [selectedId, setSelectedId] = useState(null)
   const [modalId, setModalId] = useState(null)
   const [view, setView] = useState('split') // 'split' | 'list' | 'map'
@@ -40,6 +43,9 @@ export default function HomePage() {
     fetch('/api/properties?type=neighborhoods')
       .then((r) => r.json())
       .then(setNeighborhoods)
+    fetch('/api/properties?type=cities')
+      .then((r) => r.json())
+      .then(setCities)
   }, [])
 
   // Load filtered properties
@@ -90,7 +96,13 @@ export default function HomePage() {
       if (filters.hasListings && !(p.listing_count > 0)) return false
       if (filters.availableNow && !(p.available_now_count > 0)) return false
       if (filters.neighborhood && p.neighborhood !== filters.neighborhood) return false
+      if (filters.city && p.city !== filters.city) return false
       if (filters.program && p.program !== filters.program) return false
+      if (filters.incentive) {
+        const inAny = p.has_mfte || p.has_iz || p.has_mha
+        if (filters.incentive === 'none' ? inAny : !p[`has_${filters.incentive}`])
+          return false
+      }
       if (
         filters.bedroom &&
         !(p.br_types || '').toLowerCase().includes(filters.bedroom.toLowerCase())
@@ -100,7 +112,7 @@ export default function HomePage() {
         return false
       if (
         q &&
-        ![p.building_name, p.address, p.neighborhood].some((s) =>
+        ![p.building_name, p.address, p.neighborhood, p.city].some((s) =>
           (s || '').toLowerCase().includes(q)
         )
       )
@@ -163,6 +175,7 @@ export default function HomePage() {
       <FilterBar
         filters={filters}
         neighborhoods={neighborhoods}
+        cities={cities}
         total={total}
         onChange={handleFilterChange}
       />
@@ -276,6 +289,7 @@ export default function HomePage() {
               properties={visibleMapProperties}
               highlightId={selectedId}
               onSelect={handleMapSelect}
+              fitTo={filters.city}
             />
           </div>
         )}

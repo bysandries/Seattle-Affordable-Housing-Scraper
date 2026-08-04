@@ -5,12 +5,22 @@ import { useEffect, useRef, useState } from 'react'
 const SEATTLE_CENTER = [47.6062, -122.3321]
 const MIXED_COLOR = '#f59e0b'
 const AFFORDABLE_COLOR = '#7c3aed'
+const MARKET_COLOR = '#0284c7'
 
-export default function Map({ properties, highlightId, onSelect }) {
+const PROGRAM_COLOR = {
+  'Mixed Market and Affordable': MIXED_COLOR,
+  'Fully Affordable': AFFORDABLE_COLOR,
+  'Market Rate': MARKET_COLOR,
+}
+
+export default function Map({ properties, highlightId, onSelect, fitTo }) {
   const containerRef = useRef(null)
   const mapRef = useRef(null)
   const markersRef = useRef({})
+  const propsRef = useRef(properties)
   const [mapReady, setMapReady] = useState(false)
+
+  propsRef.current = properties
 
   useEffect(() => {
     if (typeof window === 'undefined' || !containerRef.current) return
@@ -53,12 +63,11 @@ export default function Map({ properties, highlightId, onSelect }) {
       properties.forEach((p) => {
         if (!p.lat || !p.long) return
 
-        const isMixed = p.program === 'Mixed Market and Affordable'
         const hasListings = p.listing_count > 0
 
         const marker = L.circleMarker([p.lat, p.long], {
           radius: hasListings ? 9 : 6,
-          fillColor: isMixed ? MIXED_COLOR : AFFORDABLE_COLOR,
+          fillColor: PROGRAM_COLOR[p.program] ?? AFFORDABLE_COLOR,
           color: '#fff',
           weight: 2,
           opacity: 1,
@@ -79,6 +88,18 @@ export default function Map({ properties, highlightId, onSelect }) {
       })
     })
   }, [mapReady, properties, onSelect])
+
+  // Recentre when the city filter changes — the map opens on Seattle, so
+  // selecting another city would otherwise leave the viewport somewhere empty.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!mapReady || !map || !fitTo) return
+    const pts = (propsRef.current || []).filter((p) => p.lat && p.long).map((p) => [p.lat, p.long])
+    if (!pts.length) return
+    import('leaflet').then((L) => {
+      map.fitBounds(L.latLngBounds(pts).pad(0.15), { animate: true, maxZoom: 15 })
+    })
+  }, [mapReady, fitTo])
 
   // Highlight selected marker
   useEffect(() => {
@@ -117,6 +138,10 @@ export default function Map({ properties, highlightId, onSelect }) {
         <div className="flex items-center gap-2">
           <span className="inline-block w-3 h-3 rounded-full bg-violet-600 border-2 border-white shadow" />
           Fully Affordable
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="inline-block w-3 h-3 rounded-full bg-sky-600 border-2 border-white shadow" />
+          Market Rate
         </div>
         <div className="flex items-center gap-2 border-t pt-1 mt-1">
           <span className="inline-block w-3.5 h-3.5 rounded-full bg-amber-400 border-2 border-white shadow" />

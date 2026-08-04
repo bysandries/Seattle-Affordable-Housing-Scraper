@@ -12,9 +12,21 @@ const BEDROOM_OPTIONS = [
 ]
 
 const PROGRAM_OPTIONS = [
-  { value: '', label: 'All programs' },
-  { value: 'Mixed Market and Affordable', label: 'Mixed Market' },
-  { value: 'Fully Affordable', label: 'Fully Affordable' },
+  { value: '', label: 'Any Property Type', activeClass: 'bg-slate-700 text-white border-slate-700' },
+  { value: 'Mixed Market and Affordable', label: 'Mixed Market', activeClass: 'bg-amber-500 text-white border-amber-500' },
+  { value: 'Fully Affordable', label: 'Fully Affordable', activeClass: 'bg-violet-600 text-white border-violet-600' },
+  { value: 'Market Rate', label: 'Market Rate', activeClass: 'bg-sky-600 text-white border-sky-600' },
+]
+
+// Market-rate incentive programs tracked in affordable_buildings. "None" is the
+// rest of the dataset — buildings affordable through LIHTC, project-based
+// Section 8 or city funding rather than a zoning/tax incentive.
+const INCENTIVE_OPTIONS = [
+  { value: '', label: 'Any' },
+  { value: 'mfte', label: 'MFTE' },
+  { value: 'iz', label: 'Incentive Zoning (IZ)' },
+  { value: 'mha', label: 'MHA' },
+  { value: 'none', label: 'None of these' },
 ]
 
 const RENT_PRESETS = [
@@ -26,7 +38,7 @@ const RENT_PRESETS = [
   { label: '≤$3,000', value: 3000 },
 ]
 
-export default function FilterBar({ filters, neighborhoods, total, onChange }) {
+export default function FilterBar({ filters, neighborhoods, cities = [], total, onChange }) {
   const [expanded, setExpanded] = useState(false)
 
   const set = (key, value) => onChange({ ...filters, [key]: value, page: 1 })
@@ -34,7 +46,9 @@ export default function FilterBar({ filters, neighborhoods, total, onChange }) {
   const activeCount = [
     filters.search,
     filters.neighborhood,
+    filters.city,
     filters.program,
+    filters.incentive,
     filters.bedroom,
     filters.maxRent > 0,
     filters.hasListings,
@@ -98,15 +112,13 @@ export default function FilterBar({ filters, neighborhoods, total, onChange }) {
           🔑 Available now
         </button>
 
-        {PROGRAM_OPTIONS.slice(1).map((opt) => (
+        {PROGRAM_OPTIONS.map((opt) => (
           <button
             key={opt.value}
-            onClick={() => set('program', filters.program === opt.value ? '' : opt.value)}
+            onClick={() => set('program', opt.value)}
             className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ${
               filters.program === opt.value
-                ? opt.value.includes('Mixed')
-                  ? 'bg-amber-500 text-white border-amber-500'
-                  : 'bg-violet-600 text-white border-violet-600'
+                ? opt.activeClass
                 : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'
             }`}
           >
@@ -121,10 +133,27 @@ export default function FilterBar({ filters, neighborhoods, total, onChange }) {
 
       {/* Expanded filters */}
       {expanded && (
-        <div className="px-4 pb-4 pt-1 border-t border-slate-100 grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="px-4 pb-4 pt-1 border-t border-slate-100 grid grid-cols-2 md:grid-cols-3 gap-3">
+          {/* City */}
+          <div>
+            <label className="block text-xs text-slate-500 font-medium mb-1.5">City</label>
+            <select
+              value={filters.city}
+              onChange={(e) => set('city', e.target.value)}
+              className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+            >
+              <option value="">All Washington</option>
+              {cities.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
+
           {/* Neighborhood */}
           <div>
-            <label className="block text-xs text-slate-500 font-medium mb-1.5">Neighborhood</label>
+            <label className="block text-xs text-slate-500 font-medium mb-1.5">
+              Neighborhood <span className="text-slate-400 font-normal">(Seattle)</span>
+            </label>
             <select
               value={filters.neighborhood}
               onChange={(e) => set('neighborhood', e.target.value)}
@@ -151,8 +180,25 @@ export default function FilterBar({ filters, neighborhoods, total, onChange }) {
             </select>
           </div>
 
+          {/* Incentive program */}
+          <div className="col-span-2 md:col-span-1">
+            <label className="block text-xs text-slate-500 font-medium mb-1.5">
+              Incentive program
+            </label>
+            <select
+              value={filters.incentive}
+              onChange={(e) => set('incentive', e.target.value)}
+              title="MFTE, Incentive Zoning and MHA are market-rate buildings with set-aside affordable units. “None of these” covers the rest — LIHTC, project-based Section 8 and city-funded buildings."
+              className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+            >
+              {INCENTIVE_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </div>
+
           {/* Max rent */}
-          <div className="col-span-2">
+          <div className="col-span-2 md:col-span-3">
             <label className="block text-xs text-slate-500 font-medium mb-1.5">Max rent / month</label>
             <div className="flex gap-1.5 flex-wrap">
               {RENT_PRESETS.map((p) => (

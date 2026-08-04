@@ -81,6 +81,21 @@ function execQueryOne(db, sql, params = []) {
   return rows[0] ?? null
 }
 
+/**
+ * Older DB files predate the affordable_buildings table. Probe once so the
+ * incentive-program columns and filters can be skipped rather than throwing and
+ * taking the whole listing query down with them.
+ */
+let _hasAffordable = null
+function hasAffordableTable(db) {
+  if (_hasAffordable === null) {
+    _hasAffordable =
+      execQuery(db, "SELECT name FROM sqlite_master WHERE type='table' AND name='affordable_buildings'")
+        .length > 0
+  }
+  return _hasAffordable
+}
+
 /** Today as YYYY-MM-DD in local time, for comparing against available_date. */
 function todayIso() {
   const d = new Date()
@@ -97,10 +112,37 @@ function availableNowSql(alias) {
     OR (${alias}.available_date IS NOT NULL AND ${alias}.available_date <= '${todayIso()}'))`
 }
 
+/**
+ * Incentive-program filters, keyed by the value the client sends. A property
+ * can be matched to more than one affordable_buildings row, so these are
+ * EXISTS subqueries rather than a join — a join would fan out the unit
+ * aggregates. `none` covers both "no matched row" and "matched but in none of
+ * the three programs", i.e. buildings affordable through LIHTC, project-based
+ * Section 8 or city funding instead of a market-rate incentive.
+ */
+const INCENTIVE_SQL = {
+  mfte: 'EXISTS (SELECT 1 FROM affordable_buildings a WHERE a.property_id = p.id AND a.has_mfte = 1)',
+  iz: 'EXISTS (SELECT 1 FROM affordable_buildings a WHERE a.property_id = p.id AND a.has_iz = 1)',
+  mha: 'EXISTS (SELECT 1 FROM affordable_buildings a WHERE a.property_id = p.id AND a.has_mha = 1)',
+  none: `NOT EXISTS (SELECT 1 FROM affordable_buildings a WHERE a.property_id = p.id
+    AND (a.has_mfte = 1 OR a.has_iz = 1 OR a.has_mha = 1))`,
+}
+
+/** Per-property incentive flags, as scalar subqueries to avoid the same fan-out. */
+const INCENTIVE_FLAGS_SQL = ['mfte', 'iz', 'mha']
+  .map(
+    (k) =>
+      `COALESCE((SELECT MAX(a.has_${k}) FROM affordable_buildings a
+         WHERE a.property_id = p.id), 0) AS has_${k}`
+  )
+  .join(',\n      ')
+
 export async function getProperties({
   search = '',
   neighborhood = '',
+  city = '',
   program = '',
+  incentive = '',
   maxRent = 0,
   hasListings = false,
   availableNow = false,
@@ -116,12 +158,18 @@ export async function getProperties({
   const params = []
 
   if (search) {
-    whereParts.push('(p.building_name LIKE ? OR p.address LIKE ? OR p.neighborhood LIKE ?)')
-    params.push(like, like, like)
+    whereParts.push(
+      '(p.building_name LIKE ? OR p.address LIKE ? OR p.neighborhood LIKE ? OR p.city LIKE ?)'
+    )
+    params.push(like, like, like, like)
   }
   if (neighborhood) {
     whereParts.push('p.neighborhood = ?')
     params.push(neighborhood)
+  }
+  if (city) {
+    whereParts.push('p.city = ?')
+    params.push(city)
   }
   if (program) {
     whereParts.push('p.program = ?')
@@ -130,6 +178,11 @@ export async function getProperties({
   if (bedroom) {
     whereParts.push('p.br_types LIKE ?')
     params.push(`%${bedroom}%`)
+  }
+  // Looked up by key, so an unknown value is ignored rather than interpolated.
+  const withAffordable = hasAffordableTable(db)
+  if (incentive && withAffordable && INCENTIVE_SQL[incentive]) {
+    whereParts.push(INCENTIVE_SQL[incentive])
   }
 
   const where = 'WHERE ' + whereParts.join(' AND ')
@@ -147,7 +200,8 @@ export async function getProperties({
       p.id, p.building_name, p.address, p.neighborhood, p.program,
       p.amis, p.br_types, p.total_units, p.income_restricted_units,
       p.expiration_date, p.website, p.phone, p.lat, p.long,
-      p.owner_management,
+      p.owner_management, p.city, p.state, p.data_source,
+      ${withAffordable ? INCENTIVE_FLAGS_SQL + ',' : ''}
       MIN(CASE WHEN u.rent_min > 0 THEN u.rent_min END) AS min_rent,
       MAX(u.rent_max) AS max_rent,
       GROUP_CONCAT(DISTINCT NULLIF(u.unit_type, 'unknown')) AS available_types,
@@ -161,6 +215,9 @@ export async function getProperties({
     ${having}
     ORDER BY
       CASE WHEN COUNT(DISTINCT u.id) > 0 THEN 0 ELSE 1 END,
+      -- Curated affordable stock leads; statewide market-rate rows are
+      -- supplementary and are reached through the city / Market Rate filters.
+      CASE WHEN IFNULL(p.data_source, 'seattle_oh') = 'appfolio' THEN 1 ELSE 0 END,
       p.building_name
     LIMIT ? OFFSET ?
   `
@@ -189,22 +246,25 @@ export async function getProperties({
 
 export async function getMapProperties() {
   const db = await getDb()
+  const withAffordable = hasAffordableTable(db)
   return execQuery(
     db,
-    `SELECT id, building_name, address, neighborhood, program, br_types, lat, long,
-      (SELECT COUNT(*) FROM units u WHERE u.property_id = properties.id AND u.is_current = 1
+    `SELECT p.id, p.building_name, p.address, p.neighborhood, p.program, p.br_types,
+      p.lat, p.long, p.city, p.data_source,
+      ${withAffordable ? INCENTIVE_FLAGS_SQL + ',' : ''}
+      (SELECT COUNT(*) FROM units u WHERE u.property_id = p.id AND u.is_current = 1
          AND u.rent_min IS NOT NULL AND (u.available_count IS NULL OR u.available_count > 0)
          AND ${availableNowSql('u')}) AS available_now_count,
-      (SELECT MIN(available_date) FROM units WHERE property_id = properties.id AND is_current = 1
+      (SELECT MIN(available_date) FROM units WHERE property_id = p.id AND is_current = 1
          AND rent_min IS NOT NULL AND (available_count IS NULL OR available_count > 0)
          AND available_date IS NOT NULL) AS next_available_date,
-      (SELECT COUNT(*) FROM units WHERE property_id = properties.id AND is_current = 1
+      (SELECT COUNT(*) FROM units WHERE property_id = p.id AND is_current = 1
          AND rent_min IS NOT NULL
          AND (available_count IS NULL OR available_count > 0)) AS listing_count,
-      (SELECT MIN(rent_min) FROM units WHERE property_id = properties.id AND is_current = 1
+      (SELECT MIN(rent_min) FROM units WHERE property_id = p.id AND is_current = 1
          AND rent_min > 0
          AND (available_count IS NULL OR available_count > 0)) AS min_rent
-     FROM properties WHERE lat != 0 AND long != 0`
+     FROM properties p WHERE p.lat != 0 AND p.long != 0`
   )
 }
 
@@ -258,9 +318,24 @@ export async function getPropertyById(id) {
 
 export async function getNeighborhoods() {
   const db = await getDb()
+  // Seattle-dataset neighbourhoods only; statewide rows carry their city here
+  // instead, and are selected through the separate city filter.
   const rows = execQuery(
     db,
-    "SELECT DISTINCT neighborhood FROM properties WHERE neighborhood != '' ORDER BY neighborhood"
+    `SELECT DISTINCT neighborhood FROM properties
+     WHERE neighborhood != '' AND IFNULL(data_source, 'seattle_oh') != 'appfolio'
+     ORDER BY neighborhood`
   )
   return rows.map((r) => r.neighborhood)
+}
+
+export async function getCities() {
+  const db = await getDb()
+  const rows = tryQuery(
+    db,
+    `SELECT city, COUNT(*) AS n FROM properties
+     WHERE city IS NOT NULL AND city != '' AND lat != 0 AND long != 0
+     GROUP BY city ORDER BY n DESC, city`
+  )
+  return rows.map((r) => r.city)
 }

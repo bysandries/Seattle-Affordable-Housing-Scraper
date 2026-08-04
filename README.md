@@ -114,6 +114,34 @@ python main.py scrape --limit 10   # Test with 10 properties
 - Stores unit listings in the database with foreign key to properties
 - Runs with configurable concurrency (default: 10 workers)
 
+**AppFolio master portals** (`python main.py appfolio`, `APPFOLIO_MASTER_URLS` in
+`config.py`): many Seattle PM companies publish every building they manage at
+`<company>.appfolio.com/listings`. Scraping the portal directly reaches all of
+their buildings, not just the one whose own site embeds the widget, and matches
+them back to properties by street address. 26 portals currently produce matches,
+covering 230 properties.
+
+To find more, two passes work well: sweep every `properties.website` for
+`*.appfolio.com` (catches portals the per-site scraper missed because they had no
+vacancy at the time), and web-search for Seattle AppFolio listing portals. Verify
+a candidate matches at least one property before adding it.
+
+**Statewide listings.** The same run keeps the Washington listings that match no
+Seattle-dataset building, instead of discarding them, so the app covers the rest
+of the state. They become properties of their own with `data_source = 'appfolio'`,
+`program = 'Market Rate'`, and coordinates read from each portal's inline
+`markers` array (the only place AppFolio publishes lat/long). Unit-level
+addresses are collapsed to one property per building, and ids are negative
+SHA-1 derivations of the building key — the Seattle dataset's ids are positive
+parcel numbers, so the two spaces cannot collide. Rows that stop being
+advertised are deleted on the next run, since they only exist while a portal
+lists them.
+
+These carry **no affordability data** — no AMI, no MFTE/IZ/MHA, no income
+restrictions — and cover only the PM companies in `APPFOLIO_MASTER_URLS`, so
+they are supplementary to the curated Seattle stock rather than a statewide
+affordable-housing dataset. The list view sorts them below it for that reason.
+
 ### MFTE / IZ / MHA Buildings
 
 Fetches all market-rate buildings offering affordable units under the MFTE (Multifamily Tax Exemption), IZ (Incentive Zoning), and MHA (Mandatory Housing Affordability) programs:
@@ -258,6 +286,14 @@ Open [http://localhost:0616](http://localhost:0616) to view the application.
 **Features:**
 - **Interactive Map** - Leaflet map with color-coded markers (amber: Mixed Market, violet: Fully Affordable)
 - **Filter Bar** - Search by text, neighborhood, program type, bedroom count, rent range
+- **Incentive Program Filter** - Narrow to MFTE (313), Incentive Zoning (49) or MHA (29)
+  buildings, or to the properties in **none** of them. Note that statewide market-rate
+  rows also qualify as "none"; combine with *Fully Affordable* for the 411 LIHTC /
+  project-based Section 8 / city-funded buildings
+- **Property Type** - *Any Property Type* (2,018), *Mixed Market* (343),
+  *Fully Affordable* (414), or *Market Rate* (1,261 statewide AppFolio buildings)
+- **City Filter** - 55 Washington cities; selecting one recentres the map on it.
+  The neighborhood filter stays Seattle-only, since only that dataset has them
 - **Property Cards** - Show building info, AMI levels, unit types, live pricing badges
 - **Property Modal** - Detailed view with unit table, contact links, mini-map
 - **View Modes** - Split view, list-only, or map-only

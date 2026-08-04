@@ -40,6 +40,13 @@ function formatShortDate(iso) {
   return new Date(y, m - 1, d).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
 }
 
+// Incentive programs a building can carry; absent on properties outside them.
+const INCENTIVE_BADGES = [
+  { key: 'has_mfte', label: 'MFTE', className: 'bg-sky-50 text-sky-700 border-sky-200' },
+  { key: 'has_iz', label: 'IZ', className: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
+  { key: 'has_mha', label: 'MHA', className: 'bg-rose-50 text-rose-700 border-rose-200' },
+]
+
 function parseAvailableTypes(types) {
   if (!types) return []
   return types
@@ -49,8 +56,14 @@ function parseAvailableTypes(types) {
     .map((s) => BEDROOM_LABELS[s] || s)
 }
 
+const PROGRAM_BADGE = {
+  'Mixed Market and Affordable': { label: 'Mixed', className: 'bg-amber-50 text-amber-700 border-amber-200' },
+  'Fully Affordable': { label: 'Affordable', className: 'bg-violet-50 text-violet-700 border-violet-200' },
+  'Market Rate': { label: 'Market Rate', className: 'bg-sky-50 text-sky-700 border-sky-200' },
+}
+
 export default function PropertyCard({ property, isSelected, onClick }) {
-  const isMixed = property.program === 'Mixed Market and Affordable'
+  const badge = PROGRAM_BADGE[property.program] ?? PROGRAM_BADGE['Fully Affordable']
   const hasListings = property.listing_count > 0
   const brTypes = parseBrTypes(property.br_types)
   const liveTypes = parseAvailableTypes(property.available_types)
@@ -85,15 +98,17 @@ export default function PropertyCard({ property, isSelected, onClick }) {
         <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-medium">
           {property.neighborhood}
         </span>
-        <span
-          className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-            isMixed
-              ? 'bg-amber-50 text-amber-700 border border-amber-200'
-              : 'bg-violet-50 text-violet-700 border border-violet-200'
-          }`}
-        >
-          {isMixed ? 'Mixed' : 'Affordable'}
+        <span className={`text-xs px-2 py-0.5 rounded-full font-medium border ${badge.className}`}>
+          {badge.label}
         </span>
+        {INCENTIVE_BADGES.filter((b) => property[b.key]).map((b) => (
+          <span
+            key={b.key}
+            className={`text-xs px-2 py-0.5 rounded-full font-medium border ${b.className}`}
+          >
+            {b.label}
+          </span>
+        ))}
       </div>
 
       {/* AMI + Units */}
