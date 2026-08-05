@@ -298,8 +298,13 @@ Open [http://localhost:0616](http://localhost:0616) to view the application.
 - **Property Modal** - Detailed view with unit table, contact links, mini-map.
   Each unit row deep-links to that exact apartment's listing page, while the
   website button goes to the property management landing page
-- **Favorites** - Heart any property to save it; the Favorites pill filters to
-  your saved list. Stored per-browser in localStorage, since there are no accounts
+- **Favorites** - Heart an individual apartment in the unit table to save that
+  specific listing; the card then shows a `♥ N` badge. Whole buildings can also be
+  saved, which is the only option for the 28% of properties that publish no live
+  listings. The Favorites pill filters to buildings you saved or that hold a saved
+  apartment. Stored per-browser in localStorage, since there are no accounts.
+  Saved units are keyed by listing URL where available, not by row id — every
+  scrape reissues those
 - **View Modes** - Split view, list-only, or map-only
 - **Pagination** - 48 properties per page
 

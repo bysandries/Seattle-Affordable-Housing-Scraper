@@ -89,7 +89,7 @@ function MiniMap({ lat, long, name }) {
 }
 
 export default function PropertyModal({ propertyId, onClose }) {
-  const { isFavorite, toggle } = useFavorites()
+  const { isPropertyFavorite, toggleProperty, isUnitFavorite, toggleUnit } = useFavorites()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const overlayRef = useRef(null)
@@ -137,8 +137,9 @@ export default function PropertyModal({ propertyId, onClose }) {
         >
           <div className="absolute top-4 right-4 flex items-center gap-2">
             <HeartButton
-              active={isFavorite(propertyId)}
-              onToggle={() => toggle(propertyId)}
+              active={isPropertyFavorite(propertyId)}
+              onToggle={() => toggleProperty(propertyId)}
+              label="saved buildings"
             />
             <button
               onClick={onClose}
@@ -237,6 +238,9 @@ export default function PropertyModal({ propertyId, onClose }) {
                   <table className="w-full text-sm">
                     <thead className="bg-slate-50 border-b border-slate-200">
                       <tr>
+                        <th className="w-10 px-2 py-2.5">
+                          <span className="sr-only">Save</span>
+                        </th>
                         <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Type</th>
                         <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Size</th>
                         <th className="text-right px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Rent</th>
@@ -253,6 +257,14 @@ export default function PropertyModal({ propertyId, onClose }) {
                             window.open(u.listing_url, '_blank', 'noopener,noreferrer')
                           }
                         >
+                          <td className="px-2 py-3">
+                            <HeartButton
+                              active={isUnitFavorite(u)}
+                              onToggle={() => toggleUnit(u, propertyId)}
+                              size="sm"
+                              label="saved apartments"
+                            />
+                          </td>
                           <td className="px-4 py-3 font-medium text-slate-800">
                             {u.listing_url ? (
                               <a
@@ -287,9 +299,9 @@ export default function PropertyModal({ propertyId, onClose }) {
                   </table>
                 </div>
                 <p className="text-xs text-slate-400 mt-2">
-                  {units.some((u) => u.listing_url)
-                    ? 'Click a unit to open its listing · prices may have changed since scraping'
-                    : 'Data scraped from property website · may not reflect current availability'}
+                  ♡ saves a single apartment
+                  {units.some((u) => u.listing_url) ? ' · click a unit to open its listing' : ''}
+                  {' · prices may have changed since scraping'}
                 </p>
               </div>
             )}

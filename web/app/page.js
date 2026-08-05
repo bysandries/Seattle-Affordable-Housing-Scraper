@@ -33,7 +33,13 @@ export default function HomePage() {
   const [neighborhoods, setNeighborhoods] = useState([])
   const [cities, setCities] = useState([])
   const [selectedId, setSelectedId] = useState(null)
-  const { favorites, isFavorite, toggle, count: favoriteCount } = useFavorites()
+  const {
+    propertyIds: favoritePropertyIds,
+    isPropertyFavorite,
+    toggleProperty,
+    savedUnitCount,
+    count: favoriteCount,
+  } = useFavorites()
   const [modalId, setModalId] = useState(null)
   const [view, setView] = useState('split') // 'split' | 'list' | 'map'
   const listRef = useRef(null)
@@ -66,7 +72,7 @@ export default function HomePage() {
     )
     // Sent even when empty, so "no favorites yet" returns nothing rather than
     // silently falling back to every property.
-    if (filters.favoritesOnly) params.set('ids', favorites.join(','))
+    if (filters.favoritesOnly) params.set('ids', favoritePropertyIds.join(','))
 
     fetch(`/api/properties?${params}`, { signal: controller.signal })
       .then((r) => r.json())
@@ -79,7 +85,7 @@ export default function HomePage() {
       .catch((e) => { if (e.name !== 'AbortError') setLoading(false) })
     // Joined rather than passed by reference: unhearting while the favorites
     // filter is on must refetch, but toggling otherwise should not.
-  }, [filters, filters.favoritesOnly ? favorites.join(',') : ''])
+  }, [filters, filters.favoritesOnly ? favoritePropertyIds.join(',') : ''])
 
   const handleCardClick = useCallback((id) => {
     setSelectedId(id)
@@ -102,7 +108,7 @@ export default function HomePage() {
   const visibleMapProperties = useMemo(() => {
     const q = filters.search.trim().toLowerCase()
     return mapProperties.filter((p) => {
-      if (filters.favoritesOnly && !favorites.includes(Number(p.id))) return false
+      if (filters.favoritesOnly && !favoritePropertyIds.includes(Number(p.id))) return false
       if (filters.hasListings && !(p.listing_count > 0)) return false
       if (filters.availableNow && !(p.available_now_count > 0)) return false
       if (filters.neighborhood && p.neighborhood !== filters.neighborhood) return false
@@ -130,7 +136,7 @@ export default function HomePage() {
         return false
       return true
     })
-  }, [mapProperties, filters, favorites])
+  }, [mapProperties, filters, favoritePropertyIds])
 
   const hasActiveFilters = Object.entries(filters).some(
     ([k, v]) => k !== 'page' && v !== DEFAULT_FILTERS[k]
@@ -248,8 +254,9 @@ export default function HomePage() {
                         property={p}
                         isSelected={selectedId === p.id}
                         onClick={() => handleCardClick(p.id)}
-                        isFavorite={isFavorite(p.id)}
-                        onToggleFavorite={() => toggle(p.id)}
+                        isFavorite={isPropertyFavorite(p.id)}
+                        onToggleFavorite={() => toggleProperty(p.id)}
+                        savedUnitCount={savedUnitCount(p.id)}
                       />
                     ))}
                   </div>

@@ -64,7 +64,14 @@ const PROGRAM_BADGE = {
   'Market Rate': { label: 'Market Rate', className: 'bg-sky-50 text-sky-700 border-sky-200' },
 }
 
-export default function PropertyCard({ property, isSelected, onClick, isFavorite, onToggleFavorite }) {
+export default function PropertyCard({
+  property,
+  isSelected,
+  onClick,
+  isFavorite,
+  onToggleFavorite,
+  savedUnitCount = 0,
+}) {
   const badge = PROGRAM_BADGE[property.program] ?? PROGRAM_BADGE['Fully Affordable']
   const hasListings = property.listing_count > 0
   const brTypes = parseBrTypes(property.br_types)
@@ -104,7 +111,20 @@ export default function PropertyCard({ property, isSelected, onClick, isFavorite
               Live
             </span>
           ) : null}
-          <HeartButton active={isFavorite} onToggle={onToggleFavorite} size="sm" />
+          {savedUnitCount > 0 && (
+            <span
+              className="flex items-center gap-0.5 text-rose-600 bg-rose-50 border border-rose-200 text-xs font-medium px-2 py-0.5 rounded-full"
+              title={`${savedUnitCount} saved apartment${savedUnitCount !== 1 ? 's' : ''} here`}
+            >
+              ♥ {savedUnitCount}
+            </span>
+          )}
+          <HeartButton
+            active={isFavorite}
+            onToggle={onToggleFavorite}
+            size="sm"
+            label="saved buildings"
+          />
         </div>
       </div>
 
