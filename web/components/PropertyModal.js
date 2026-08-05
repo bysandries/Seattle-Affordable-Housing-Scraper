@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { HeartButton, useFavorites } from '@/lib/favorites'
+import { HeartButton, unitKey, useFavorites } from '@/lib/favorites'
 
 const UNIT_LABELS = {
   micro: 'Micro',
@@ -88,8 +88,11 @@ function MiniMap({ lat, long, name }) {
   return <div ref={ref} className="w-full h-40 rounded-lg overflow-hidden border border-slate-200" />
 }
 
-export default function PropertyModal({ propertyId, onClose }) {
+export default function PropertyModal({ propertyId, onClose, sharedUnitKeys }) {
   const { isPropertyFavorite, toggleProperty, isUnitFavorite, toggleUnit } = useFavorites()
+  // Units the shared list marked. Shown as saved so a recipient sees exactly
+  // which apartments were picked, even before importing the list.
+  const inShared = (unit) => !!sharedUnitKeys && sharedUnitKeys.has(unitKey(unit))
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const overlayRef = useRef(null)
@@ -259,7 +262,7 @@ export default function PropertyModal({ propertyId, onClose }) {
                         >
                           <td className="px-2 py-3">
                             <HeartButton
-                              active={isUnitFavorite(u)}
+                              active={isUnitFavorite(u) || inShared(u)}
                               onToggle={() => toggleUnit(u, propertyId)}
                               size="sm"
                               label="saved apartments"

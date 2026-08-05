@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import ShareFavorites from '@/components/ShareFavorites'
 
 const BEDROOM_OPTIONS = [
   { value: '', label: 'All types' },
@@ -44,6 +45,7 @@ export default function FilterBar({
   cities = [],
   counties = [],
   favoriteCount = 0,
+  favoritesState,
   total,
   onChange,
 }) {
@@ -119,6 +121,8 @@ export default function FilterBar({
             </span>
           )}
         </button>
+
+        <ShareFavorites state={favoritesState} disabled={favoriteCount === 0} />
 
         <button
           onClick={() => set('hasListings', !filters.hasListings)}

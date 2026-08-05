@@ -327,6 +327,20 @@ Open [http://localhost:0616](http://localhost:0616) to view the application.
   apartment. Stored per-browser in localStorage, since there are no accounts.
   Saved units are keyed by listing URL where available, not by row id — every
   scrape reissues those
+- **Share a list** - the share button next to the Favorites filter copies a link
+  with the whole list encoded in the URL, so a recipient needs no account and
+  nothing is stored server-side. The payload is deflated before base64url
+  encoding, which matters because saved AppFolio units are identified by long,
+  highly repetitive listing URLs — 23 saved items compress to a 252-character
+  token. Opening a link shows it as a *view*, with the shared apartments marked
+  and a button to import it, so arriving on a link never silently rewrites what
+  the recipient saved. Anything since delisted is reported rather than quietly
+  dropped.
+
+  Note that AppFolio property ids are a hash of the normalized building address,
+  so changing that normalization (see `addresses.py`) reissues them and
+  invalidates previously shared links for those buildings. Seattle and WSHFC ids
+  are stable.
 - **View Modes** - Split view, list-only, or map-only
 - **Pagination** - 48 properties per page
 

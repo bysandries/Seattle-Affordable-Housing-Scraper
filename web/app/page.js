@@ -6,7 +6,13 @@ import FilterBar from '@/components/FilterBar'
 import PropertyCard from '@/components/PropertyCard'
 import PropertyModal from '@/components/PropertyModal'
 import { bedroomAliases } from '@/lib/bedrooms'
-import { useFavorites } from '@/lib/favorites'
+import {
+  clearShareToken,
+  decodeShare,
+  importShared,
+  readShareToken,
+  useFavorites,
+} from '@/lib/favorites'
 
 const Map = dynamic(() => import('@/components/Map'), { ssr: false })
 
@@ -36,12 +42,17 @@ export default function HomePage() {
   const [counties, setCounties] = useState([])
   const [selectedId, setSelectedId] = useState(null)
   const {
+    properties: favoriteProperties,
+    units: favoriteUnits,
     propertyIds: favoritePropertyIds,
     isPropertyFavorite,
     toggleProperty,
     savedUnitCount,
     count: favoriteCount,
   } = useFavorites()
+  // A list opened from a shared link. Held separately from this browser's own
+  // favorites so arriving on a link never quietly rewrites what someone saved.
+  const [shared, setShared] = useState(null)
   const [modalId, setModalId] = useState(null)
   const [view, setView] = useState('split') // 'split' | 'list' | 'map'
   const listRef = useRef(null)
@@ -63,6 +74,35 @@ export default function HomePage() {
       .then(setCounties)
   }, [])
 
+  // A shared link decodes into a view of someone else's list, shown until it is
+  // either imported or dismissed. The token is stripped from the address bar so
+  // a later reload does not resurrect it.
+  useEffect(() => {
+    const token = readShareToken()
+    if (!token) return
+    let cancelled = false
+    decodeShare(token).then((list) => {
+      if (cancelled || !list || (!list.properties.length && !list.units.length)) return
+      setShared(list)
+      setFilters((f) => ({ ...f, favoritesOnly: true, page: 1 }))
+      clearShareToken()
+    })
+    return () => { cancelled = true }
+  }, [])
+
+  // While viewing a shared list, "favorites" means theirs, not this browser's.
+  // Declared before the effects that read it, or the dependency array evaluates
+  // it in the temporal dead zone.
+  const activeFavoriteIds = useMemo(() => {
+    if (!shared) return favoritePropertyIds
+    return [...new Set([...shared.properties, ...shared.units.map((u) => u.propertyId)])]
+  }, [shared, favoritePropertyIds])
+
+  const sharedUnitKeys = useMemo(
+    () => (shared ? new Set(shared.units.map((u) => u.key)) : null),
+    [shared]
+  )
+
   // Load filtered properties
   useEffect(() => {
     if (abortRef.current) abortRef.current.abort()
@@ -77,7 +117,7 @@ export default function HomePage() {
     )
     // Sent even when empty, so "no favorites yet" returns nothing rather than
     // silently falling back to every property.
-    if (filters.favoritesOnly) params.set('ids', favoritePropertyIds.join(','))
+    if (filters.favoritesOnly) params.set('ids', activeFavoriteIds.join(','))
 
     fetch(`/api/properties?${params}`, { signal: controller.signal })
       .then((r) => r.json())
@@ -90,7 +130,7 @@ export default function HomePage() {
       .catch((e) => { if (e.name !== 'AbortError') setLoading(false) })
     // Joined rather than passed by reference: unhearting while the favorites
     // filter is on must refetch, but toggling otherwise should not.
-  }, [filters, filters.favoritesOnly ? favoritePropertyIds.join(',') : ''])
+  }, [filters, filters.favoritesOnly ? activeFavoriteIds.join(',') : ''])
 
   const handleCardClick = useCallback((id) => {
     setSelectedId(id)
@@ -108,12 +148,22 @@ export default function HomePage() {
 
   const clearFilters = () => setFilters(DEFAULT_FILTERS)
 
+  const acceptShared = () => {
+    importShared(shared)
+    setShared(null)
+  }
+
+  const dismissShared = () => {
+    setShared(null)
+    setFilters((f) => ({ ...f, favoritesOnly: false, page: 1 }))
+  }
+
   // Mirror the list query's filter semantics (lib/db.js getProperties) so the
   // map always shows the same set of properties as the list.
   const visibleMapProperties = useMemo(() => {
     const q = filters.search.trim().toLowerCase()
     return mapProperties.filter((p) => {
-      if (filters.favoritesOnly && !favoritePropertyIds.includes(Number(p.id))) return false
+      if (filters.favoritesOnly && !activeFavoriteIds.includes(Number(p.id))) return false
       if (filters.hasListings && !(p.listing_count > 0)) return false
       if (filters.availableNow && !(p.available_now_count > 0)) return false
       if (filters.neighborhood && p.neighborhood !== filters.neighborhood) return false
@@ -201,9 +251,42 @@ export default function HomePage() {
         cities={cities}
         counties={counties}
         favoriteCount={favoriteCount}
+        favoritesState={{ properties: favoriteProperties, units: favoriteUnits }}
         total={total}
         onChange={handleFilterChange}
       />
+
+      {/* Shared list banner */}
+      {shared && (
+        <div className="bg-rose-50 border-b border-rose-200 px-4 py-2 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm shrink-0">
+          <span className="text-rose-800">
+            ♥ Viewing a shared list —{' '}
+            <strong>
+              {total} propert{total !== 1 ? 'ies' : 'y'}
+            </strong>
+            {shared.units.length > 0 && <> and <strong>{shared.units.length} saved apartment{shared.units.length !== 1 ? 's' : ''}</strong></>}
+            {/* A listing can vanish between sharing and opening — say so rather
+                than quietly showing fewer than the sender picked. */}
+            {!loading && total < activeFavoriteIds.length && (
+              <span className="text-rose-600">
+                {' '}· {activeFavoriteIds.length - total} no longer listed
+              </span>
+            )}
+          </span>
+          <button
+            onClick={acceptShared}
+            className="text-xs font-medium px-3 py-1 rounded-full bg-rose-600 text-white hover:bg-rose-700 transition-colors"
+          >
+            Save to my favorites
+          </button>
+          <button
+            onClick={dismissShared}
+            className="text-xs text-rose-700 hover:underline"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {/* Body */}
       <div className="flex flex-1 overflow-hidden">
@@ -327,6 +410,7 @@ export default function HomePage() {
       {modalId && (
         <PropertyModal
           propertyId={modalId}
+          sharedUnitKeys={sharedUnitKeys}
           onClose={() => {
             setModalId(null)
             setSelectedId(null)

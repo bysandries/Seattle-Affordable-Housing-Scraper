@@ -155,6 +155,113 @@ export function useFavorites() {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Sharing
+//
+// The whole list travels in the URL, so a link works for anyone with no account
+// and no server-side storage. Saved AppFolio units are identified by their
+// listing URL, which is long and highly repetitive across a building, so the
+// payload is deflated before encoding — that repetition is exactly what a
+// compressor eats. Where CompressionStream is unavailable the JSON is encoded
+// as-is; a one-character tag says which, so old links keep working.
+// ---------------------------------------------------------------------------
+
+const SHARE_PARAM = 's'
+const TAG_DEFLATED = 'z'
+const TAG_PLAIN = 'j'
+
+function bytesToBase64Url(bytes) {
+  let binary = ''
+  for (const b of bytes) binary += String.fromCharCode(b)
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+}
+
+function base64UrlToBytes(text) {
+  const padded = text.replace(/-/g, '+').replace(/_/g, '/')
+  const binary = atob(padded + '='.repeat((4 - (padded.length % 4)) % 4))
+  return Uint8Array.from(binary, (c) => c.charCodeAt(0))
+}
+
+async function deflate(bytes) {
+  if (typeof CompressionStream === 'undefined') return null
+  try {
+    const stream = new Blob([bytes]).stream().pipeThrough(new CompressionStream('deflate-raw'))
+    return new Uint8Array(await new Response(stream).arrayBuffer())
+  } catch {
+    return null
+  }
+}
+
+async function inflate(bytes) {
+  const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'))
+  return new Uint8Array(await new Response(stream).arrayBuffer())
+}
+
+/** Encode a favorites state into the compact token that rides in the URL. */
+export async function encodeShare({ properties = [], units = [] }) {
+  const payload = JSON.stringify({
+    v: 1,
+    p: properties,
+    u: units.map((u) => [u.propertyId, u.key]),
+  })
+  const raw = new TextEncoder().encode(payload)
+  const packed = await deflate(raw)
+  return packed ? TAG_DEFLATED + bytesToBase64Url(packed) : TAG_PLAIN + bytesToBase64Url(raw)
+}
+
+/** Inverse of encodeShare. Returns null for anything malformed. */
+export async function decodeShare(token) {
+  if (!token || token.length < 2) return null
+  try {
+    const body = base64UrlToBytes(token.slice(1))
+    const bytes = token[0] === TAG_DEFLATED ? await inflate(body) : body
+    const parsed = JSON.parse(new TextDecoder().decode(bytes))
+    return {
+      properties: Array.isArray(parsed?.p) ? parsed.p.map(Number).filter(Number.isFinite) : [],
+      units: Array.isArray(parsed?.u)
+        ? parsed.u
+            .filter((entry) => Array.isArray(entry) && typeof entry[1] === 'string')
+            .map(([propertyId, key]) => ({ propertyId: Number(propertyId), key }))
+        : [],
+    }
+  } catch {
+    return null
+  }
+}
+
+export async function buildShareUrl(state) {
+  const token = await encodeShare(state)
+  const url = new URL(window.location.href)
+  url.search = ''
+  url.hash = ''
+  url.searchParams.set(SHARE_PARAM, token)
+  return url.toString()
+}
+
+export function readShareToken() {
+  if (typeof window === 'undefined') return null
+  return new URLSearchParams(window.location.search).get(SHARE_PARAM)
+}
+
+/** Drop the share token from the address bar without reloading. */
+export function clearShareToken() {
+  const url = new URL(window.location.href)
+  url.searchParams.delete(SHARE_PARAM)
+  window.history.replaceState({}, '', url.pathname + url.search)
+}
+
+/** Merge a shared list into this browser's own favorites. */
+export function importShared({ properties = [], units = [] }) {
+  const cur = read()
+  const keys = new Set(cur.units.map((u) => u.key))
+  const next = {
+    properties: [...new Set([...cur.properties, ...properties.map(Number)])],
+    units: [...cur.units, ...units.filter((u) => !keys.has(u.key))],
+  }
+  write(next)
+  return next
+}
+
 /** Heart toggle. Stops propagation so it works inside clickable rows and cards. */
 export function HeartButton({ active, onToggle, className = '', size = 'md', label = 'favorites' }) {
   const px = size === 'sm' ? 'w-7 h-7 text-sm' : 'w-8 h-8 text-base'
