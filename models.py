@@ -47,6 +47,34 @@ class AppfolioProperty:
 
 
 @dataclass
+class WshfcProperty:
+    """A tax-credit (LIHTC) property from the state finance commission's list.
+
+    Covers all 39 Washington counties, so this is the statewide counterpart to
+    the Seattle Office of Housing dataset. Coordinates are absent from WSHFC's
+    own file and are joined in from HUD's matching layer.
+    """
+    id: int
+    building_name: str
+    address: str
+    city: str
+    county: str
+    state: str
+    program: str
+    total_units: Optional[int]
+    income_restricted_units: Optional[int]
+    amis: str
+    br_types: str
+    expiration_date: str
+    owner_management: str
+    phone: str
+    website: str
+    lat: Optional[float] = None
+    long: Optional[float] = None
+    last_fetched_at: Optional[str] = None
+
+
+@dataclass
 class AffordableBuilding:
     """Market-rate building with affordable units (MFTE / IZ / MHA)."""
     building_name: str

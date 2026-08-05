@@ -8,7 +8,6 @@ import hashlib
 import json
 import re
 from datetime import datetime, timezone
-from html import unescape
 from urllib.parse import urljoin
 
 import httpx
@@ -17,6 +16,13 @@ from rich.console import Console
 
 import availability
 import db
+from addresses import (
+    clean_street as _clean_street,
+    normalize_street_for_key,
+    split_city_state as _split_city_state,
+    street_directionals as _street_directionals,
+    street_words as _street_words,
+)
 from config import HEADERS, APPFOLIO_MASTER_URLS, PROPERTY_SITE_OVERRIDES
 from models import AppfolioProperty, UnitListing
 from scrapers.property_scraper import _normalize_unit_type
@@ -28,46 +34,12 @@ console = Console()
 # coordinates appear, so statewide properties are geocoded straight from it.
 MARKERS_RE = re.compile(r"markers\s*:\s*(\[.*?\])\s*[,}]", re.S)
 
-# "<street>, <City>, <ST> <zip>" — the unit-number segment between street and
-# city is numeric, so requiring letters in the city group skips past it.
-CITY_STATE_RE = re.compile(r",\s*([A-Za-z][A-Za-z .'-]+),\s*([A-Z]{2})\b")
-
 STATEWIDE_SOURCE = "appfolio-statewide"
 
 
 def _extract_street_num(address: str) -> str | None:
     m = re.search(r"^(\d+)", address.strip())
     return m.group(1) if m else None
-
-
-# Street types and directionals carry no identifying information — "4301 Stone
-# Way N" and "4301 Alderwood Mall Boulevard" would otherwise look similar just
-# by sharing "way"/"n"-style tokens.
-_GENERIC_STREET_WORDS = {
-    "st", "street", "ave", "av", "avenue", "rd", "road", "blvd", "boulevard",
-    "dr", "drive", "ln", "lane", "way", "pl", "place", "ct", "court", "cir",
-    "circle", "ter", "terrace", "pkwy", "parkway", "hwy", "highway", "loop",
-    "trl", "trail", "sq", "square",
-    "n", "s", "e", "w", "ne", "nw", "se", "sw", "north", "south", "east", "west",
-    "apt", "unit", "ste", "suite", "bldg", "building", "no",
-}
-
-
-def _street_words(address: str) -> set[str]:
-    """Identifying words of a street address: no number, no street type."""
-    street = address.split(",")[0].lower()
-    words = re.findall(r"[a-z0-9]+", street)
-    return {w for w in words if w not in _GENERIC_STREET_WORDS and not w.isdigit()}
-
-
-def _street_directionals(address: str) -> set[str]:
-    """Compass parts of a street, canonicalised ("North" and "N" are one)."""
-    street = address.split(",")[0].lower()
-    return {
-        _DIRECTIONALS[w]
-        for w in re.findall(r"[a-z]+", street)
-        if w in _DIRECTIONALS
-    }
 
 
 def _parse_markers(html: str) -> dict[str, dict]:
@@ -81,102 +53,10 @@ def _parse_markers(html: str) -> dict[str, dict]:
         return {}
 
 
-def _split_city_state(address: str) -> tuple[str | None, str | None]:
-    m = CITY_STATE_RE.search(address or "")
-    if not m:
-        return None, None
-    return m.group(1).strip().title(), m.group(2).upper()
-
-
-# A US street address runs "<number> <name> <type> [<directional>]". Anything
-# after that is a unit designator, however the manager chose to write it.
-# Recognising where the address proper ends is what lets "600 Black Lake Blvd SW
-# 97", "600 Black Lake Blvd SW 43" and "4046 8th Ave NE type" collapse onto
-# their buildings — none of which carry a "#", "Unit" or "-" marker to key off.
-_STREET_TYPE_CANON = {
-    "st": "st", "street": "st",
-    "ave": "ave", "av": "ave", "avenue": "ave",
-    "rd": "rd", "road": "rd",
-    "blvd": "blvd", "boulevard": "blvd",
-    "dr": "dr", "drive": "dr",
-    "ln": "ln", "lane": "ln",
-    "pl": "pl", "place": "pl",
-    "ct": "ct", "court": "ct",
-    "cir": "cir", "circle": "cir",
-    "ter": "ter", "terrace": "ter",
-    "pkwy": "pkwy", "parkway": "pkwy",
-    "hwy": "hwy", "highway": "hwy",
-    "way": "way", "wy": "way",
-    "trl": "trl", "trail": "trl",
-    "sq": "sq", "square": "sq",
-    "loop": "loop",
-}
-
-_DIRECTIONALS = {
-    "n": "n", "s": "s", "e": "e", "w": "w",
-    "ne": "ne", "nw": "nw", "se": "se", "sw": "sw",
-    "north": "n", "south": "s", "east": "e", "west": "w",
-    "northeast": "ne", "northwest": "nw", "southeast": "se", "southwest": "sw",
-}
-
-
-def _street_tokens(street: str) -> list[str]:
-    """Split a street into words, dropping the punctuation portals sprinkle in."""
-    return [t for t in re.split(r"[\s,]+", street.replace(".", " ").strip()) if t]
-
-
-def _truncate_at_street_type(tokens: list[str]) -> list[str] | None:
-    """Keep through the last street type plus a trailing directional.
-
-    Returns None when no street type is present, since then there is no
-    reliable boundary and guessing would merge distinct buildings.
-    """
-    last = None
-    for i, t in enumerate(tokens):
-        if t.lower().strip("#-") in _STREET_TYPE_CANON:
-            last = i
-    if last is None:
-        return None
-    end = last + 1
-    if end < len(tokens) and tokens[end].lower().strip("#-") in _DIRECTIONALS:
-        end += 1
-    return tokens[:end]
-
-
-def _clean_street(address: str) -> str:
-    """The street portion of an address, minus any unit designator.
-
-    Listings at one building differ only by that designator, so stripping it is
-    what collapses them to a single building.
-    """
-    street = unescape(address.split(",")[0])
-    tokens = _street_tokens(street)
-    truncated = _truncate_at_street_type(tokens)
-    if truncated is not None:
-        return " ".join(truncated)
-
-    # No recognisable street type — fall back to the explicit designator forms.
-    # "#" cannot follow \b, since it is not a word character.
-    street = re.sub(r"\s*[-–]\s*(?=[\w/-]*\d)[\w/-]+\s*$", "", street)
-    street = re.sub(r"(?:\b(?:apt|unit|ste|suite|bldg)\b|#)\s*[\w-]+\s*$", "", street, flags=re.I)
-    return re.sub(r"\s{2,}", " ", street).strip(" ,-#")
-
-
-def _normalize_street_for_key(street: str) -> str:
-    """Spelling-independent form, so "Ave." and "Avenue" identify one building."""
-    out = []
-    for t in _street_tokens(street.lower()):
-        t = re.sub(r"[^a-z0-9]", "", t)
-        if not t:
-            continue
-        out.append(_STREET_TYPE_CANON.get(t) or _DIRECTIONALS.get(t) or t)
-    return " ".join(out)
-
-
 def _building_key(address: str) -> str:
     """Identity of the building a unit-level address belongs to."""
     city, state = _split_city_state(address)
-    return f"{_normalize_street_for_key(_clean_street(address))}|{(city or '').lower()}|{state or ''}"
+    return f"{normalize_street_for_key(_clean_street(address))}|{(city or '').lower()}|{state or ''}"
 
 
 def _property_id_for(key: str) -> int:

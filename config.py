@@ -15,6 +15,19 @@ AFFORDABLE_UNITS_FEATURE_URL = (
     "/GIS_Renters_Map_Affordable_Units_Q2_25/FeatureServer/0/query"
 )
 
+# Statewide affordable housing, covering all 39 counties rather than Seattle
+# alone. WSHFC has the richer attributes (AMI bands, unit mix, county, and a
+# project website for roughly half of them) but publishes no coordinates; the
+# HUD layer covers the same LIHTC portfolio with geometry, so the two are joined
+# on address. The WSHFC filename carries a revision date and changes when they
+# republish — relink from https://www.wshfc.org/managers/resources.htm
+WSHFC_PROPERTY_LIST_URL = (
+    "https://www.wshfc.org/managers/Other/Active%20Project%20List_forwebsite_2-2-26.xlsx"
+)
+HUD_LIHTC_FEATURE_URL = (
+    "https://egis.hud.gov/arcgis/rest/services/hrl/HudResourceLocator/MapServer/3/query"
+)
+
 # Official income & rent limit schedules (Seattle Office of Housing).
 # MILU covers MHA, Incentive Zoning, MFTE P3-P5, and other market-incentive units.
 RENT_LIMIT_PDFS = {

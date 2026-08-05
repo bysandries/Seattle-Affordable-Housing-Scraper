@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getProperties, getMapProperties, getNeighborhoods, getCities } from '@/lib/db'
+import { getProperties, getMapProperties, getNeighborhoods, getCities, getCounties } from '@/lib/db'
 
 // Reads the SQLite file off disk, so this must run on Node, not Edge.
 export const runtime = 'nodejs'
@@ -21,6 +21,10 @@ export async function GET(request) {
     return NextResponse.json(await getCities())
   }
 
+  if (type === 'counties') {
+    return NextResponse.json(await getCounties())
+  }
+
   // Present-but-empty must stay an empty array, not null: it means the visitor
   // has no favorites yet, which should match nothing.
   const rawIds = searchParams.get('ids')
@@ -30,6 +34,7 @@ export async function GET(request) {
     search: searchParams.get('search') || '',
     neighborhood: searchParams.get('neighborhood') || '',
     city: searchParams.get('city') || '',
+    county: searchParams.get('county') || '',
     program: searchParams.get('program') || '',
     incentive: searchParams.get('incentive') || '',
     bedroom: searchParams.get('bedroom') || '',

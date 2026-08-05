@@ -12,6 +12,7 @@ from models import (
     RentLimit,
     UnitListing,
     UnitQualification,
+    WshfcProperty,
 )
 
 
@@ -86,7 +87,12 @@ def _migrate_properties_columns(conn: sqlite3.Connection) -> None:
 
     existing = {r["name"] for r in conn.execute("PRAGMA table_info(properties)")}
     added = []
-    for col, decl in (("city", "TEXT"), ("state", "TEXT"), ("data_source", "TEXT")):
+    for col, decl in (
+        ("city", "TEXT"),
+        ("state", "TEXT"),
+        ("county", "TEXT"),
+        ("data_source", "TEXT"),
+    ):
         if col not in existing:
             conn.execute(f"ALTER TABLE properties ADD COLUMN {col} {decl}")
             added.append(col)
@@ -96,6 +102,8 @@ def _migrate_properties_columns(conn: sqlite3.Connection) -> None:
         conn.execute(
             "UPDATE properties SET city = COALESCE(city, 'Seattle'), "
             "state = COALESCE(state, 'WA'), "
+            "county = COALESCE(county, CASE WHEN IFNULL(data_source, 'seattle_oh') = 'seattle_oh' "
+            "THEN 'King' END), "
             "data_source = COALESCE(data_source, 'seattle_oh')"
         )
 
@@ -134,6 +142,7 @@ def init_db() -> None:
                 neighborhood TEXT,
                 city TEXT,
                 state TEXT,
+                county TEXT,
                 data_source TEXT,
                 program TEXT,
                 owner_management TEXT,
@@ -481,6 +490,119 @@ def insert_units_snapshot(
     )
     conn.executemany(_INSERT_UNIT_SQL, [_unit_params(u, source) for u in deduped])
     return len(deduped)
+
+
+def upsert_wshfc_properties(
+    conn: sqlite3.Connection, props: list["WshfcProperty"], skip_keys: set[str]
+) -> tuple[int, int, int]:
+    """Add statewide tax-credit properties without disturbing existing rows.
+
+    Deliberately non-destructive: a building already present from another source
+    is skipped rather than overwritten or duplicated, so the curated Seattle
+    dataset and the AppFolio listings keep their own records untouched. Only
+    rows this source owns are refreshed. Returns (inserted, updated, skipped).
+    """
+    from addresses import address_key
+
+    inserted = updated = skipped = 0
+    for p in props:
+        if address_key(p.address, p.city) in skip_keys:
+            skipped += 1
+            continue
+        existing = conn.execute(
+            "SELECT data_source FROM properties WHERE id = ?", (p.id,)
+        ).fetchone()
+        if existing and (existing["data_source"] or "seattle_oh") != "wshfc":
+            # Id space collision with another source: leave theirs alone.
+            skipped += 1
+            continue
+        conn.execute(
+            """
+            INSERT INTO properties (
+                id, building_name, address, neighborhood, city, county, state,
+                data_source, program, owner_management, phone, website,
+                total_units, income_restricted_units, amis, br_types,
+                expiration_date, lat, long, last_fetched_at
+            ) VALUES (
+                :id, :building_name, :address, :city, :city, :county, :state,
+                'wshfc', :program, :owner_management, :phone, :website,
+                :total_units, :income_restricted_units, :amis, :br_types,
+                :expiration_date, :lat, :long, :last_fetched_at
+            )
+            ON CONFLICT(id) DO UPDATE SET
+                building_name=excluded.building_name,
+                address=excluded.address,
+                neighborhood=excluded.neighborhood,
+                city=excluded.city,
+                county=excluded.county,
+                program=excluded.program,
+                owner_management=excluded.owner_management,
+                phone=excluded.phone,
+                website=excluded.website,
+                total_units=excluded.total_units,
+                income_restricted_units=excluded.income_restricted_units,
+                amis=excluded.amis,
+                br_types=excluded.br_types,
+                expiration_date=excluded.expiration_date,
+                -- Keep coordinates already on the row if this run has none.
+                lat=COALESCE(excluded.lat, properties.lat),
+                long=COALESCE(excluded.long, properties.long),
+                last_fetched_at=excluded.last_fetched_at
+            """,
+            {
+                "id": p.id,
+                "building_name": p.building_name,
+                "address": p.address,
+                "city": p.city,
+                "county": p.county,
+                "state": p.state,
+                "program": p.program,
+                "owner_management": p.owner_management,
+                "phone": p.phone,
+                "website": p.website,
+                "total_units": p.total_units,
+                "income_restricted_units": p.income_restricted_units,
+                "amis": p.amis,
+                "br_types": p.br_types,
+                "expiration_date": p.expiration_date,
+                "lat": p.lat,
+                "long": p.long,
+                "last_fetched_at": p.last_fetched_at,
+            },
+        )
+        if existing:
+            updated += 1
+        else:
+            inserted += 1
+    return inserted, updated, skipped
+
+
+def backfill_counties(conn: sqlite3.Connection, city_to_county: dict[str, str]) -> int:
+    """Give county-less rows a county inferred from their city.
+
+    Only WSHFC names counties; the AppFolio listings carry a city at most, so
+    without this the county filter would hide every market-rate building.
+    """
+    filled = 0
+    for city, county in city_to_county.items():
+        cur = conn.execute(
+            "UPDATE properties SET county = ? "
+            "WHERE (county IS NULL OR county = '') AND LOWER(TRIM(city)) = ?",
+            (county, city),
+        )
+        filled += cur.rowcount if cur.rowcount and cur.rowcount > 0 else 0
+    return filled
+
+
+def existing_address_keys(conn: sqlite3.Connection, exclude_source: str) -> set[str]:
+    """Address keys already claimed by sources other than `exclude_source`."""
+    from addresses import address_key
+
+    rows = conn.execute(
+        "SELECT address, city FROM properties WHERE IFNULL(data_source, 'seattle_oh') != ?",
+        (exclude_source,),
+    ).fetchall()
+    return {address_key(r["address"] or "", r["city"] or "") for r in rows}
 
 
 def demote_stale_units(conn: sqlite3.Connection, source: str, run_scraped_at: str) -> int:

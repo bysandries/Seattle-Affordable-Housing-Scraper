@@ -38,7 +38,15 @@ const RENT_PRESETS = [
   { label: '≤$3,000', value: 3000 },
 ]
 
-export default function FilterBar({ filters, neighborhoods, cities = [], favoriteCount = 0, total, onChange }) {
+export default function FilterBar({
+  filters,
+  neighborhoods,
+  cities = [],
+  counties = [],
+  favoriteCount = 0,
+  total,
+  onChange,
+}) {
   const [expanded, setExpanded] = useState(false)
 
   const set = (key, value) => onChange({ ...filters, [key]: value, page: 1 })
@@ -47,6 +55,7 @@ export default function FilterBar({ filters, neighborhoods, cities = [], favorit
     filters.search,
     filters.neighborhood,
     filters.city,
+    filters.county,
     filters.program,
     filters.incentive,
     filters.bedroom,
@@ -156,6 +165,21 @@ export default function FilterBar({ filters, neighborhoods, cities = [], favorit
       {/* Expanded filters */}
       {expanded && (
         <div className="px-4 pb-4 pt-1 border-t border-slate-100 grid grid-cols-2 md:grid-cols-3 gap-3">
+          {/* County */}
+          <div>
+            <label className="block text-xs text-slate-500 font-medium mb-1.5">County</label>
+            <select
+              value={filters.county}
+              onChange={(e) => set('county', e.target.value)}
+              className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+            >
+              <option value="">All counties</option>
+              {counties.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
+
           {/* City */}
           <div>
             <label className="block text-xs text-slate-500 font-medium mb-1.5">City</label>

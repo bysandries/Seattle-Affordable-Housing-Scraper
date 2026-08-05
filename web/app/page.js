@@ -14,6 +14,7 @@ const DEFAULT_FILTERS = {
   search: '',
   neighborhood: '',
   city: '',
+  county: '',
   program: '',
   incentive: '',
   bedroom: '',
@@ -32,6 +33,7 @@ export default function HomePage() {
   const [mapProperties, setMapProperties] = useState([])
   const [neighborhoods, setNeighborhoods] = useState([])
   const [cities, setCities] = useState([])
+  const [counties, setCounties] = useState([])
   const [selectedId, setSelectedId] = useState(null)
   const {
     propertyIds: favoritePropertyIds,
@@ -56,6 +58,9 @@ export default function HomePage() {
     fetch('/api/properties?type=cities')
       .then((r) => r.json())
       .then(setCities)
+    fetch('/api/properties?type=counties')
+      .then((r) => r.json())
+      .then(setCounties)
   }, [])
 
   // Load filtered properties
@@ -113,6 +118,7 @@ export default function HomePage() {
       if (filters.availableNow && !(p.available_now_count > 0)) return false
       if (filters.neighborhood && p.neighborhood !== filters.neighborhood) return false
       if (filters.city && p.city !== filters.city) return false
+      if (filters.county && p.county !== filters.county) return false
       if (filters.program && p.program !== filters.program) return false
       if (filters.incentive) {
         const inAny = p.has_mfte || p.has_iz || p.has_mha
@@ -150,7 +156,7 @@ export default function HomePage() {
           <span className="text-2xl">🏙</span>
           <div>
             <h1 className="font-bold text-slate-900 text-base leading-tight">
-              Seattle Affordable Housing
+              Washington Affordable Housing
             </h1>
             <p className="text-xs text-slate-400 leading-tight">
               {mapProperties.length} properties · Last updated: {new Date().toLocaleDateString()}
@@ -193,6 +199,7 @@ export default function HomePage() {
         filters={filters}
         neighborhoods={neighborhoods}
         cities={cities}
+        counties={counties}
         favoriteCount={favoriteCount}
         total={total}
         onChange={handleFilterChange}
@@ -310,7 +317,7 @@ export default function HomePage() {
               properties={visibleMapProperties}
               highlightId={selectedId}
               onSelect={handleMapSelect}
-              fitTo={filters.city}
+              fitTo={filters.city || filters.county}
             />
           </div>
         )}

@@ -142,6 +142,7 @@ export async function getProperties({
   search = '',
   neighborhood = '',
   city = '',
+  county = '',
   program = '',
   incentive = '',
   maxRent = 0,
@@ -156,7 +157,10 @@ export async function getProperties({
   const offset = (page - 1) * limit
   const like = `%${search}%`
 
-  const whereParts = ['p.lat != 0', 'p.long != 0']
+  // Coordinates are not required to be listed. Some statewide records have no
+  // geocode, and dropping them would hide real affordable housing; they simply
+  // do not get a map pin. getMapProperties still requires a location.
+  const whereParts = []
   const params = []
 
   if (search) {
@@ -172,6 +176,10 @@ export async function getProperties({
   if (city) {
     whereParts.push('p.city = ?')
     params.push(city)
+  }
+  if (county) {
+    whereParts.push('p.county = ?')
+    params.push(county)
   }
   // Favorites are held client-side, so the browser sends the id set. A present
   // but empty list means "saved nothing yet" — match nothing, not everything.
@@ -199,7 +207,7 @@ export async function getProperties({
     whereParts.push(INCENTIVE_SQL[incentive])
   }
 
-  const where = 'WHERE ' + whereParts.join(' AND ')
+  const where = whereParts.length ? 'WHERE ' + whereParts.join(' AND ') : ''
 
   const havingParts = []
   if (hasListings) havingParts.push('listing_count > 0')
@@ -214,7 +222,7 @@ export async function getProperties({
       p.id, p.building_name, p.address, p.neighborhood, p.program,
       p.amis, p.br_types, p.total_units, p.income_restricted_units,
       p.expiration_date, p.website, p.phone, p.lat, p.long,
-      p.owner_management, p.city, p.state, p.data_source,
+      p.owner_management, p.city, p.state, p.county, p.data_source,
       ${withAffordable ? INCENTIVE_FLAGS_SQL + ',' : ''}
       MIN(CASE WHEN u.rent_min > 0 THEN u.rent_min END) AS min_rent,
       MAX(u.rent_max) AS max_rent,
@@ -264,7 +272,7 @@ export async function getMapProperties() {
   return execQuery(
     db,
     `SELECT p.id, p.building_name, p.address, p.neighborhood, p.program, p.br_types,
-      p.lat, p.long, p.city, p.data_source,
+      p.lat, p.long, p.city, p.county, p.data_source,
       ${withAffordable ? INCENTIVE_FLAGS_SQL + ',' : ''}
       (SELECT COUNT(*) FROM units u WHERE u.property_id = p.id AND u.is_current = 1
          AND u.rent_min IS NOT NULL AND (u.available_count IS NULL OR u.available_count > 0)
@@ -343,12 +351,23 @@ export async function getNeighborhoods() {
   return rows.map((r) => r.neighborhood)
 }
 
+export async function getCounties() {
+  const db = await getDb()
+  const rows = tryQuery(
+    db,
+    `SELECT county, COUNT(*) AS n FROM properties
+     WHERE county IS NOT NULL AND county != ''
+     GROUP BY county ORDER BY county`
+  )
+  return rows.map((r) => r.county)
+}
+
 export async function getCities() {
   const db = await getDb()
   const rows = tryQuery(
     db,
     `SELECT city, COUNT(*) AS n FROM properties
-     WHERE city IS NOT NULL AND city != '' AND lat != 0 AND long != 0
+     WHERE city IS NOT NULL AND city != ''
      GROUP BY city ORDER BY n DESC, city`
   )
   return rows.map((r) => r.city)

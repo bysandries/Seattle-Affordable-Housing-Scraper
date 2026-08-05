@@ -1,6 +1,6 @@
-# Seattle Affordable Housing Scraper
+# Washington Affordable Housing Finder
 
-A full-stack application that scrapes, stores, and visualizes affordable housing data for Seattle. The system fetches ~742 affordable housing properties from the City of Seattle's ArcGIS server, discovers and validates property websites, scrapes those websites for live unit availability and pricing, and displays everything through an interactive web interface with map-based exploration.
+A full-stack application that scrapes, stores, and visualizes affordable housing data for Washington State. It combines the City of Seattle's ArcGIS dataset, the state finance commission's statewide tax-credit portfolio (all 39 counties, geocoded via HUD), and live listings harvested from property-management portals — then discovers and scrapes property websites for unit availability and pricing, and presents everything through an interactive map and filterable list.
 
 ## Architecture Overview
 
@@ -141,6 +141,28 @@ These carry **no affordability data** — no AMI, no MFTE/IZ/MHA, no income
 restrictions — and cover only the PM companies in `APPFOLIO_MASTER_URLS`, so
 they are supplementary to the curated Seattle stock rather than a statewide
 affordable-housing dataset. The list view sorts them below it for that reason.
+
+### Statewide LIHTC Properties (all 39 counties)
+
+```bash
+python main.py wshfc
+```
+
+Ingests the Washington State Housing Finance Commission's list of active
+tax-credit properties — the statewide counterpart to Seattle's Office of Housing
+dataset. WSHFC has the richer attributes (AMI bands, unit mix, county, management
+company, and a project website for roughly half the portfolio) but publishes no
+coordinates, so HUD's Resource Locator layer is joined on a normalized address to
+supply them.
+
+**Non-destructive by design:** a building already known from the Seattle dataset
+or the AppFolio listings is skipped, never overwritten or duplicated. Only rows
+this source owns are refreshed, and re-running is idempotent. Properties without
+a geocode still appear in the list — they simply get no map pin — rather than
+being hidden.
+
+The run also backfills `county` for properties from other sources by matching on
+city, since WSHFC is the only source that names counties.
 
 ### MFTE / IZ / MHA Buildings
 

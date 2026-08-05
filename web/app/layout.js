@@ -1,8 +1,8 @@
 import './globals.css'
 
 export const metadata = {
-  title: 'Seattle Affordable Housing Finder',
-  description: 'Find affordable housing apartments in Seattle with real-time pricing and availability.',
+  title: 'Washington Affordable Housing Finder',
+  description: 'Find affordable housing across Washington State with real-time pricing and availability.',
 }
 
 export default function RootLayout({ children }) {

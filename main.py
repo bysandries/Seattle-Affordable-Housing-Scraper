@@ -6,6 +6,7 @@ Usage:
     python main.py discover           Validate/discover property websites
     python main.py scrape             Scrape all property sites for availability
     python main.py scrape --limit 10  Scrape only 10 properties (for testing)
+    python main.py wshfc              Fetch statewide LIHTC properties (all WA counties)
     python main.py affordable         Fetch MFTE/IZ/MHA buildings (unit counts + AMI levels)
                                       (aliases: mfte, mha)
     python main.py rentlimits         Fetch official MFTE/MHA income & rent limit schedules
@@ -40,6 +41,11 @@ def cmd_scrape(args: argparse.Namespace) -> None:
 
 def cmd_appfolio(_args: argparse.Namespace) -> None:
     from scrapers.appfolio_master import run
+    run()
+
+
+def cmd_wshfc(_args: argparse.Namespace) -> None:
+    from scrapers.wshfc import run
     run()
 
 
@@ -271,6 +277,10 @@ def main() -> None:
 
     sub.add_parser("appfolio", help="Scrape master AppFolio property management pages")
     sub.add_parser(
+        "wshfc",
+        help="Fetch statewide LIHTC properties (WSHFC + HUD coordinates, all WA counties)",
+    )
+    sub.add_parser(
         "affordable",
         aliases=["mfte", "mha"],
         help="Fetch MFTE/IZ/MHA buildings (unit counts + AMI levels)",
@@ -294,6 +304,7 @@ def main() -> None:
         "fetch": cmd_fetch,
         "discover": cmd_discover,
         "appfolio": cmd_appfolio,
+        "wshfc": cmd_wshfc,
         "affordable": cmd_affordable,
         "mfte": cmd_affordable,
         "mha": cmd_affordable,
