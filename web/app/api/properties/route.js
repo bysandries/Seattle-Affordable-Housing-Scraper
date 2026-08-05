@@ -21,6 +21,11 @@ export async function GET(request) {
     return NextResponse.json(await getCities())
   }
 
+  // Present-but-empty must stay an empty array, not null: it means the visitor
+  // has no favorites yet, which should match nothing.
+  const rawIds = searchParams.get('ids')
+  const ids = rawIds === null ? null : rawIds.split(',').filter(Boolean)
+
   const result = await getProperties({
     search: searchParams.get('search') || '',
     neighborhood: searchParams.get('neighborhood') || '',
@@ -28,6 +33,7 @@ export async function GET(request) {
     program: searchParams.get('program') || '',
     incentive: searchParams.get('incentive') || '',
     bedroom: searchParams.get('bedroom') || '',
+    ids,
     maxRent: Number(searchParams.get('maxRent')) || 0,
     hasListings: searchParams.get('hasListings') === 'true',
     availableNow: searchParams.get('availableNow') === 'true',

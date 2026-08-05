@@ -295,7 +295,11 @@ Open [http://localhost:0616](http://localhost:0616) to view the application.
 - **City Filter** - 55 Washington cities; selecting one recentres the map on it.
   The neighborhood filter stays Seattle-only, since only that dataset has them
 - **Property Cards** - Show building info, AMI levels, unit types, live pricing badges
-- **Property Modal** - Detailed view with unit table, contact links, mini-map
+- **Property Modal** - Detailed view with unit table, contact links, mini-map.
+  Each unit row deep-links to that exact apartment's listing page, while the
+  website button goes to the property management landing page
+- **Favorites** - Heart any property to save it; the Favorites pill filters to
+  your saved list. Stored per-browser in localStorage, since there are no accounts
 - **View Modes** - Split view, list-only, or map-only
 - **Pagination** - 48 properties per page
 

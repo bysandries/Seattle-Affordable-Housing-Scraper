@@ -38,7 +38,7 @@ const RENT_PRESETS = [
   { label: '≤$3,000', value: 3000 },
 ]
 
-export default function FilterBar({ filters, neighborhoods, cities = [], total, onChange }) {
+export default function FilterBar({ filters, neighborhoods, cities = [], favoriteCount = 0, total, onChange }) {
   const [expanded, setExpanded] = useState(false)
 
   const set = (key, value) => onChange({ ...filters, [key]: value, page: 1 })
@@ -53,6 +53,7 @@ export default function FilterBar({ filters, neighborhoods, cities = [], total, 
     filters.maxRent > 0,
     filters.hasListings,
     filters.availableNow,
+    filters.favoritesOnly,
   ].filter(Boolean).length
 
   return (
@@ -89,6 +90,27 @@ export default function FilterBar({ filters, neighborhoods, cities = [], total, 
 
       {/* Quick toggles */}
       <div className="px-4 pb-2.5 flex items-center gap-2 flex-wrap">
+        <button
+          onClick={() => set('favoritesOnly', !filters.favoritesOnly)}
+          className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ${
+            filters.favoritesOnly
+              ? 'bg-rose-500 text-white border-rose-500'
+              : 'bg-white text-slate-600 border-slate-200 hover:border-rose-400'
+          }`}
+          title="Show only properties you have saved"
+        >
+          {filters.favoritesOnly ? '♥' : '♡'} Favorites
+          {favoriteCount > 0 && (
+            <span
+              className={`ml-1.5 text-xs font-bold px-1.5 py-0.5 rounded-full ${
+                filters.favoritesOnly ? 'bg-white text-rose-600' : 'bg-rose-100 text-rose-600'
+              }`}
+            >
+              {favoriteCount}
+            </span>
+          )}
+        </button>
+
         <button
           onClick={() => set('hasListings', !filters.hasListings)}
           className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ${

@@ -237,6 +237,19 @@ async def _scrape_appfolio_master(
             avail_text = avail_span.get_text(strip=True)
             avail = availability.extract_raw(avail_text, field_is_availability=True)
 
+        # Deep link to this specific apartment. The anchor carrying
+        # data-listing-id has href="#" (it drives a JS handler), so the real
+        # target is the marker's detail_page_url, with any /listings/detail/
+        # anchor inside the card as a fallback.
+        marker = markers.get(listing_id) if listing_id else None
+        listing_url = None
+        if marker and marker.get("detail_page_url"):
+            listing_url = urljoin(url, marker["detail_page_url"])
+        else:
+            detail_a = div.find("a", href=re.compile(r"/listings/detail/", re.I))
+            if detail_a:
+                listing_url = urljoin(url, detail_a["href"])
+
         if property_id:
             results.append(UnitListing(
                 property_id=property_id,
@@ -249,13 +262,13 @@ async def _scrape_appfolio_master(
                 property_description=None,
                 amenities=None,
                 source_url=url,
+                listing_url=listing_url,
                 scraped_at=now
             ))
             continue
 
         # No Seattle-dataset match: keep it as its own statewide property, but
         # only with coordinates (the map filters on lat/long) and only in WA.
-        marker = markers.get(listing_id) if listing_id else None
         if not marker:
             continue
         full_address = marker.get("address") or address
@@ -271,15 +284,15 @@ async def _scrape_appfolio_master(
             # copy ("UP TO $1,200 OFF Top Floor Studio"), which would be both
             # wrong for the building and unstable between runs.
             street = _clean_street(full_address)
-            detail = marker.get("detail_page_url") or ""
             statewide_props[pid] = AppfolioProperty(
                 id=pid,
                 building_name=street,
                 address=f"{street}, {city}, {state}",
                 city=city,
                 state=state,
-                website=PROPERTY_SITE_OVERRIDES.get(key)
-                or (urljoin(url, detail) if detail else url),
+                # The manager's own site, not a single apartment's detail page —
+                # individual units carry their own deep link in listing_url.
+                website=PROPERTY_SITE_OVERRIDES.get(key) or url,
                 br_types="",
                 lat=float(lat),
                 long=float(long_),
@@ -300,6 +313,7 @@ async def _scrape_appfolio_master(
             property_description=None,
             amenities=None,
             source_url=url,
+            listing_url=listing_url,
             scraped_at=now
         ))
 

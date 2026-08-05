@@ -148,6 +148,7 @@ export async function getProperties({
   hasListings = false,
   availableNow = false,
   bedroom = '',
+  ids = null,
   page = 1,
   limit = 48,
 }) {
@@ -171,6 +172,17 @@ export async function getProperties({
   if (city) {
     whereParts.push('p.city = ?')
     params.push(city)
+  }
+  // Favorites are held client-side, so the browser sends the id set. A present
+  // but empty list means "saved nothing yet" — match nothing, not everything.
+  if (ids !== null) {
+    const numeric = ids.map(Number).filter(Number.isFinite)
+    if (!numeric.length) {
+      whereParts.push('0 = 1')
+    } else {
+      whereParts.push(`p.id IN (${numeric.map(() => '?').join(',')})`)
+      params.push(...numeric)
+    }
   }
   if (program) {
     whereParts.push('p.program = ?')

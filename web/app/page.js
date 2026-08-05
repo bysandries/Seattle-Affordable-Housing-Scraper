@@ -6,6 +6,7 @@ import FilterBar from '@/components/FilterBar'
 import PropertyCard from '@/components/PropertyCard'
 import PropertyModal from '@/components/PropertyModal'
 import { bedroomAliases } from '@/lib/bedrooms'
+import { useFavorites } from '@/lib/favorites'
 
 const Map = dynamic(() => import('@/components/Map'), { ssr: false })
 
@@ -19,6 +20,7 @@ const DEFAULT_FILTERS = {
   maxRent: 0,
   hasListings: false,
   availableNow: false,
+  favoritesOnly: false,
   page: 1,
 }
 
@@ -31,6 +33,7 @@ export default function HomePage() {
   const [neighborhoods, setNeighborhoods] = useState([])
   const [cities, setCities] = useState([])
   const [selectedId, setSelectedId] = useState(null)
+  const { favorites, isFavorite, toggle, count: favoriteCount } = useFavorites()
   const [modalId, setModalId] = useState(null)
   const [view, setView] = useState('split') // 'split' | 'list' | 'map'
   const listRef = useRef(null)
@@ -58,9 +61,12 @@ export default function HomePage() {
     setLoading(true)
     const params = new URLSearchParams(
       Object.entries(filters)
-        .filter(([, v]) => v !== '' && v !== 0 && v !== false)
+        .filter(([k, v]) => k !== 'favoritesOnly' && v !== '' && v !== 0 && v !== false)
         .map(([k, v]) => [k, String(v)])
     )
+    // Sent even when empty, so "no favorites yet" returns nothing rather than
+    // silently falling back to every property.
+    if (filters.favoritesOnly) params.set('ids', favorites.join(','))
 
     fetch(`/api/properties?${params}`, { signal: controller.signal })
       .then((r) => r.json())
@@ -71,7 +77,9 @@ export default function HomePage() {
         if (listRef.current) listRef.current.scrollTop = 0
       })
       .catch((e) => { if (e.name !== 'AbortError') setLoading(false) })
-  }, [filters])
+    // Joined rather than passed by reference: unhearting while the favorites
+    // filter is on must refetch, but toggling otherwise should not.
+  }, [filters, filters.favoritesOnly ? favorites.join(',') : ''])
 
   const handleCardClick = useCallback((id) => {
     setSelectedId(id)
@@ -94,6 +102,7 @@ export default function HomePage() {
   const visibleMapProperties = useMemo(() => {
     const q = filters.search.trim().toLowerCase()
     return mapProperties.filter((p) => {
+      if (filters.favoritesOnly && !favorites.includes(Number(p.id))) return false
       if (filters.hasListings && !(p.listing_count > 0)) return false
       if (filters.availableNow && !(p.available_now_count > 0)) return false
       if (filters.neighborhood && p.neighborhood !== filters.neighborhood) return false
@@ -121,7 +130,7 @@ export default function HomePage() {
         return false
       return true
     })
-  }, [mapProperties, filters])
+  }, [mapProperties, filters, favorites])
 
   const hasActiveFilters = Object.entries(filters).some(
     ([k, v]) => k !== 'page' && v !== DEFAULT_FILTERS[k]
@@ -178,6 +187,7 @@ export default function HomePage() {
         filters={filters}
         neighborhoods={neighborhoods}
         cities={cities}
+        favoriteCount={favoriteCount}
         total={total}
         onChange={handleFilterChange}
       />
@@ -238,6 +248,8 @@ export default function HomePage() {
                         property={p}
                         isSelected={selectedId === p.id}
                         onClick={() => handleCardClick(p.id)}
+                        isFavorite={isFavorite(p.id)}
+                        onToggleFavorite={() => toggle(p.id)}
                       />
                     ))}
                   </div>

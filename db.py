@@ -56,6 +56,7 @@ def _migrate_units_columns(conn: sqlite3.Connection) -> None:
         ("availability_status", "TEXT"),
         ("is_current", "INTEGER DEFAULT 1"),
         ("source", "TEXT"),
+        ("listing_url", "TEXT"),
     ):
         if col not in existing:
             conn.execute(f"ALTER TABLE units ADD COLUMN {col} {decl}")
@@ -166,6 +167,7 @@ def init_db() -> None:
                 property_description TEXT,
                 amenities TEXT,
                 source_url TEXT,
+                listing_url TEXT,
                 scraped_at TEXT
             );
 
@@ -419,6 +421,7 @@ def _unit_params(u: UnitListing, source: str = "site") -> dict:
         "property_description": u.property_description,
         "amenities": u.amenities,
         "source_url": u.source_url,
+        "listing_url": u.listing_url,
         "scraped_at": u.scraped_at,
     }
 
@@ -427,11 +430,13 @@ _INSERT_UNIT_SQL = """
     INSERT INTO units (
         property_id, unit_type, sqft, rent_min, rent_max,
         available_count, available_from, available_date, availability_status,
-        is_current, source, property_description, amenities, source_url, scraped_at
+        is_current, source, property_description, amenities, source_url,
+        listing_url, scraped_at
     ) VALUES (
         :property_id, :unit_type, :sqft, :rent_min, :rent_max,
         :available_count, :available_from, :available_date, :availability_status,
-        1, :source, :property_description, :amenities, :source_url, :scraped_at
+        1, :source, :property_description, :amenities, :source_url,
+        :listing_url, :scraped_at
     )
 """
 
@@ -446,7 +451,10 @@ def _dedupe_listings(listings: list[UnitListing]) -> list[UnitListing]:
     deduped: list[UnitListing] = []
     seen: set[tuple] = set()
     for u in listings:
-        key = (u.unit_type, u.sqft, u.rent_min, u.rent_max, u.available_from)
+        # listing_url is part of the identity: two apartments in the same
+        # building can share type, size, rent and date yet still be separate
+        # units with separate listings.
+        key = (u.unit_type, u.sqft, u.rent_min, u.rent_max, u.available_from, u.listing_url)
         if key in seen:
             continue
         seen.add(key)

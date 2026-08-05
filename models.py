@@ -148,6 +148,9 @@ class UnitListing:
     amenities: Optional[str]
     scraped_at: str
     source_url: Optional[str] = None
+    # Deep link to this specific unit's listing page, when the source has one.
+    # source_url is the portal index; this is the individual apartment.
+    listing_url: Optional[str] = None
     # normalized availability, derived from available_from by availability.py
     available_date: Optional[str] = None      # ISO YYYY-MM-DD, or None
     availability_status: Optional[str] = None  # now | future | waitlist | unknown

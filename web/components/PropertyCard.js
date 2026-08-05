@@ -1,5 +1,7 @@
 'use client'
 
+import { HeartButton } from '@/lib/favorites'
+
 function AmiDot({ amis }) {
   const val = parseInt(amis)
   let color = 'bg-slate-300'
@@ -62,16 +64,26 @@ const PROGRAM_BADGE = {
   'Market Rate': { label: 'Market Rate', className: 'bg-sky-50 text-sky-700 border-sky-200' },
 }
 
-export default function PropertyCard({ property, isSelected, onClick }) {
+export default function PropertyCard({ property, isSelected, onClick, isFavorite, onToggleFavorite }) {
   const badge = PROGRAM_BADGE[property.program] ?? PROGRAM_BADGE['Fully Affordable']
   const hasListings = property.listing_count > 0
   const brTypes = parseBrTypes(property.br_types)
   const liveTypes = parseAvailableTypes(property.available_types)
 
   return (
-    <button
+    // A div rather than a button: the card contains its own favorite button,
+    // and nesting interactive controls inside a button is invalid.
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onClick}
-      className={`w-full text-left bg-white rounded-xl border-2 transition-all duration-150 hover:shadow-md hover:-translate-y-0.5 p-4 flex flex-col gap-2 ${
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onClick()
+        }
+      }}
+      className={`w-full text-left bg-white rounded-xl border-2 transition-all duration-150 hover:shadow-md hover:-translate-y-0.5 p-4 flex flex-col gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400 ${
         isSelected
           ? 'border-blue-500 shadow-md shadow-blue-100'
           : 'border-slate-100 hover:border-slate-300'
@@ -85,12 +97,15 @@ export default function PropertyCard({ property, isSelected, onClick }) {
           </h3>
           <p className="text-slate-400 text-xs truncate mt-0.5">{property.address}</p>
         </div>
-        {hasListings ? (
-          <span className="shrink-0 flex items-center gap-1 text-emerald-600 bg-emerald-50 text-xs font-medium px-2 py-0.5 rounded-full border border-emerald-200">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            Live
-          </span>
-        ) : null}
+        <div className="shrink-0 flex items-center gap-1.5">
+          {hasListings ? (
+            <span className="flex items-center gap-1 text-emerald-600 bg-emerald-50 text-xs font-medium px-2 py-0.5 rounded-full border border-emerald-200">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Live
+            </span>
+          ) : null}
+          <HeartButton active={isFavorite} onToggle={onToggleFavorite} size="sm" />
+        </div>
       </div>
 
       {/* Badges */}
@@ -171,6 +186,6 @@ export default function PropertyCard({ property, isSelected, onClick }) {
           )}
         </div>
       </div>
-    </button>
+    </div>
   )
 }

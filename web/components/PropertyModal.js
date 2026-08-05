@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { HeartButton, useFavorites } from '@/lib/favorites'
 
 const UNIT_LABELS = {
   micro: 'Micro',
@@ -88,6 +89,7 @@ function MiniMap({ lat, long, name }) {
 }
 
 export default function PropertyModal({ propertyId, onClose }) {
+  const { isFavorite, toggle } = useFavorites()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const overlayRef = useRef(null)
@@ -112,7 +114,12 @@ export default function PropertyModal({ propertyId, onClose }) {
     if (e.target === overlayRef.current) onClose()
   }
 
-  const isMixed = data?.program === 'Mixed Market and Affordable'
+  // Header tint per program, matching the card badges and map markers.
+  const theme =
+    {
+      'Mixed Market and Affordable': { bg: 'bg-amber-50', chip: 'bg-amber-100 text-amber-700' },
+      'Market Rate': { bg: 'bg-sky-50', chip: 'bg-sky-100 text-sky-700' },
+    }[data?.program] ?? { bg: 'bg-violet-50', chip: 'bg-violet-100 text-violet-700' }
   const units = data?.units?.filter((u) => u.rent_min || u.available_from) ?? []
 
   return (
@@ -125,16 +132,22 @@ export default function PropertyModal({ propertyId, onClose }) {
         {/* Header */}
         <div
           className={`px-6 pt-6 pb-4 ${
-            isMixed ? 'bg-amber-50' : 'bg-violet-50'
+            theme.bg
           } relative`}
         >
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/80 hover:bg-white text-slate-500 hover:text-slate-900 transition-colors shadow"
-            aria-label="Close"
-          >
-            ✕
-          </button>
+          <div className="absolute top-4 right-4 flex items-center gap-2">
+            <HeartButton
+              active={isFavorite(propertyId)}
+              onToggle={() => toggle(propertyId)}
+            />
+            <button
+              onClick={onClose}
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-white/80 hover:bg-white text-slate-500 hover:text-slate-900 transition-colors shadow"
+              aria-label="Close"
+            >
+              ✕
+            </button>
+          </div>
 
           {loading ? (
             <div className="h-16 flex items-center">
@@ -143,11 +156,7 @@ export default function PropertyModal({ propertyId, onClose }) {
           ) : (
             <>
               <span
-                className={`text-xs font-semibold px-2 py-0.5 rounded-full mb-2 inline-block ${
-                  isMixed
-                    ? 'bg-amber-100 text-amber-700'
-                    : 'bg-violet-100 text-violet-700'
-                }`}
+                className={`text-xs font-semibold px-2 py-0.5 rounded-full mb-2 inline-block ${theme.chip}`}
               >
                 {data.program}
               </span>
@@ -167,12 +176,16 @@ export default function PropertyModal({ propertyId, onClose }) {
                   <div className="font-semibold text-slate-800 mt-0.5">{data.amis}</div>
                 </div>
               )}
-              <div className="bg-slate-50 rounded-lg p-3">
-                <div className="text-xs text-slate-400 uppercase tracking-wide font-medium">Units</div>
-                <div className="font-semibold text-slate-800 mt-0.5">
-                  {data.income_restricted_units} restricted / {data.total_units} total
+              {/* Statewide market-rate rows have no unit counts — the portal
+                  publishes vacancies, not building totals. */}
+              {data.total_units > 0 && (
+                <div className="bg-slate-50 rounded-lg p-3">
+                  <div className="text-xs text-slate-400 uppercase tracking-wide font-medium">Units</div>
+                  <div className="font-semibold text-slate-800 mt-0.5">
+                    {data.income_restricted_units} restricted / {data.total_units} total
+                  </div>
                 </div>
-              </div>
+              )}
               {data.expiration_date && (
                 <div className="bg-slate-50 rounded-lg p-3">
                   <div className="text-xs text-slate-400 uppercase tracking-wide font-medium">Program Expiry</div>
@@ -205,7 +218,7 @@ export default function PropertyModal({ propertyId, onClose }) {
                     rel="noopener noreferrer"
                     className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors font-medium"
                   >
-                    🌐 Visit website ↗
+                    🌐 Property management site ↗
                   </a>
                 )}
               </div>
@@ -232,9 +245,28 @@ export default function PropertyModal({ propertyId, onClose }) {
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {units.map((u, i) => (
-                        <tr key={i} className="hover:bg-slate-50">
+                        <tr
+                          key={i}
+                          className={u.listing_url ? 'hover:bg-blue-50 cursor-pointer group' : 'hover:bg-slate-50'}
+                          onClick={() =>
+                            u.listing_url &&
+                            window.open(u.listing_url, '_blank', 'noopener,noreferrer')
+                          }
+                        >
                           <td className="px-4 py-3 font-medium text-slate-800">
-                            {UNIT_LABELS[u.unit_type] || u.unit_type}
+                            {u.listing_url ? (
+                              <a
+                                href={u.listing_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-blue-600 group-hover:underline"
+                              >
+                                {UNIT_LABELS[u.unit_type] || u.unit_type} ↗
+                              </a>
+                            ) : (
+                              UNIT_LABELS[u.unit_type] || u.unit_type
+                            )}
                           </td>
                           <td className="px-4 py-3 text-slate-500">
                             {u.sqft ? `${u.sqft} sqft` : '—'}
@@ -254,11 +286,11 @@ export default function PropertyModal({ propertyId, onClose }) {
                     </tbody>
                   </table>
                 </div>
-                {data.units.some((u) => u.source_url) && (
-                  <p className="text-xs text-slate-400 mt-2">
-                    Data scraped from property website · may not reflect current availability
-                  </p>
-                )}
+                <p className="text-xs text-slate-400 mt-2">
+                  {units.some((u) => u.listing_url)
+                    ? 'Click a unit to open its listing · prices may have changed since scraping'
+                    : 'Data scraped from property website · may not reflect current availability'}
+                </p>
               </div>
             )}
 
