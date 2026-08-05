@@ -770,9 +770,14 @@ def get_properties_to_scrape(conn: sqlite3.Connection) -> list[sqlite3.Row]:
     return conn.execute(
         """
         SELECT * FROM properties
-        WHERE website_status != 'unreachable'
-          AND (website IS NOT NULL AND website != '')
-          OR (website_discovered IS NOT NULL AND website_discovered != '')
+        -- Parenthesised deliberately: as "A AND B OR C" this also returned
+        -- properties whose discovered URL was already known to be unreachable.
+        -- A NULL status means "not validated yet", which is still scrapeable.
+        WHERE IFNULL(website_status, '') != 'unreachable'
+          AND (
+                (website IS NOT NULL AND website != '')
+             OR (website_discovered IS NOT NULL AND website_discovered != '')
+          )
         ORDER BY id
         """
     ).fetchall()

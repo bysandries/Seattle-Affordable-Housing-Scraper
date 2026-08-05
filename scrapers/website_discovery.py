@@ -55,8 +55,12 @@ async def _validate_url(client: httpx.AsyncClient, url: str) -> str:
         return "unreachable"
 
 
-def _search_website(building_name: str, address: str) -> str | None:
-    query = f'"{building_name}" "{address}" Seattle apartments'
+def _search_website(building_name: str, address: str, city: str = "") -> str | None:
+    # The city comes from the property, not a constant: the dataset is statewide
+    # now, and searching a Spokane building with "Seattle" finds the wrong thing
+    # or nothing at all.
+    where = (city or "").strip() or "Washington"
+    query = f'"{building_name}" "{address}" {where} WA apartments'
     try:
         with DDGS() as ddgs:
             results = list(ddgs.text(query, max_results=8))
@@ -88,7 +92,7 @@ async def _process_row(
             return property_id, None, status
 
         # No website — search for it
-        found = _search_website(row["building_name"], row["address"])
+        found = _search_website(row["building_name"], row["address"], row.get("city") or "")
         if found:
             found = _ensure_scheme(found)
             status = await _validate_url(client, found)
@@ -121,17 +125,28 @@ async def _run_async(rows: list) -> None:
     )
 
 
-def run() -> None:
+def run(only_with_website: bool = False) -> None:
+    """Validate known websites, and search for the ones we lack.
+
+    `only_with_website` skips the search half. Searching is by far the slower
+    path — one throttled query per property, against a rate-limited engine — so
+    it is worth running the cheap validation on its own when the goal is to get
+    known sites scraped.
+    """
+    clause = (
+        "AND website IS NOT NULL AND website != ''" if only_with_website else ""
+    )
     with db.db_conn() as conn:
         # Process all properties that haven't been validated yet
         rows = conn.execute(
-            "SELECT id, building_name, address, website, website_discovered "
-            "FROM properties WHERE website_status IS NULL ORDER BY id"
+            "SELECT id, building_name, address, city, website, website_discovered "
+            f"FROM properties WHERE website_status IS NULL {clause} ORDER BY id"
         ).fetchall()
 
     if not rows:
-        console.print("[yellow]No properties need website discovery. Run 'fetch' first.[/]")
+        console.print("[yellow]No properties need website discovery.[/]")
         return
 
-    console.print(f"[cyan]Validating/discovering websites for {len(rows)} properties...[/]")
+    what = "Validating" if only_with_website else "Validating/discovering"
+    console.print(f"[cyan]{what} websites for {len(rows)} properties...[/]")
     asyncio.run(_run_async(rows))

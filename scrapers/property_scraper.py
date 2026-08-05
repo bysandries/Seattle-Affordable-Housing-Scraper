@@ -545,16 +545,31 @@ async def _run_async(rows: list, limit: int | None) -> None:
     console.print(f"[bold green]Scraping complete for {len(rows)} properties.[/]")
 
 
-def run(limit: int | None = None) -> None:
+def run(limit: int | None = None, source: str | None = None) -> None:
+    """Scrape property websites for availability.
+
+    `source` restricts the run to one data_source (seattle_oh / wshfc /
+    appfolio). With thousands of properties now spanning several ingests,
+    re-scraping everything to reach a newly added subset is wasteful.
+    """
+    params: list = []
+    source_clause = ""
+    if source:
+        source_clause = "AND IFNULL(data_source, 'seattle_oh') = ?"
+        params.append(source)
     with db.db_conn() as conn:
         rows = conn.execute(
-            """
+            f"""
             SELECT id, building_name, website, website_discovered, website_status
             FROM properties
-            WHERE website_status = 'ok'
-               OR (website_status IS NULL AND (website IS NOT NULL AND website != ''))
+            WHERE (
+                    website_status = 'ok'
+                 OR (website_status IS NULL AND (website IS NOT NULL AND website != ''))
+                  )
+              {source_clause}
             ORDER BY id
-            """
+            """,
+            params,
         ).fetchall()
 
     if not rows:

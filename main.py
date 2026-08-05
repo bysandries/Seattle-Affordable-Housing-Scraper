@@ -30,14 +30,14 @@ def cmd_fetch(_args: argparse.Namespace) -> None:
     run()
 
 
-def cmd_discover(_args: argparse.Namespace) -> None:
+def cmd_discover(args: argparse.Namespace) -> None:
     from scrapers.website_discovery import run
-    run()
+    run(only_with_website=getattr(args, "existing_only", False))
 
 
 def cmd_scrape(args: argparse.Namespace) -> None:
     from scrapers.property_scraper import run
-    run(limit=args.limit)
+    run(limit=args.limit, source=getattr(args, "source", None))
 
 def cmd_appfolio(_args: argparse.Namespace) -> None:
     from scrapers.appfolio_master import run
@@ -270,10 +270,21 @@ def main() -> None:
     sub = parser.add_subparsers(dest="command", required=True)
 
     sub.add_parser("fetch", help="Pull all properties from ArcGIS FeatureServer")
-    sub.add_parser("discover", help="Validate/discover property websites")
+    discover_p = sub.add_parser("discover", help="Validate/discover property websites")
+    discover_p.add_argument(
+        "--existing-only",
+        action="store_true",
+        help="Only validate URLs we already have; skip the slow search for missing ones",
+    )
 
     scrape_p = sub.add_parser("scrape", help="Scrape property websites for availability")
     scrape_p.add_argument("--limit", type=int, default=None, help="Max properties to scrape")
+    scrape_p.add_argument(
+        "--source",
+        choices=["seattle_oh", "wshfc", "appfolio"],
+        default=None,
+        help="Restrict to one data source instead of every property",
+    )
 
     sub.add_parser("appfolio", help="Scrape master AppFolio property management pages")
     sub.add_parser(
