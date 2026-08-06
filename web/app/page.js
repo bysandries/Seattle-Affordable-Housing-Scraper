@@ -371,6 +371,7 @@ export default function HomePage() {
                           toggleProperty(p.id, { address: p.address, city: p.city })
                         }
                         savedUnitCount={sharedSavedUnitCount(p.id)}
+                        highlighted={savedIds.has(Number(p.id))}
                       />
                     ))}
                   </div>

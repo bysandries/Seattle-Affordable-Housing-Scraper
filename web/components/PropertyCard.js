@@ -71,6 +71,10 @@ export default function PropertyCard({
   isFavorite,
   onToggleFavorite,
   savedUnitCount = 0,
+  // Whether this building belongs to the list being shown. Distinct from
+  // isFavorite: viewing someone's shared list highlights their picks, while the
+  // heart keeps reflecting what the viewer themselves saved.
+  highlighted,
 }) {
   const badge = PROGRAM_BADGE[property.program] ?? PROGRAM_BADGE['Fully Affordable']
   const hasListings = property.listing_count > 0
@@ -95,7 +99,7 @@ export default function PropertyCard({
           ? 'border-blue-500 shadow-md shadow-blue-100'
           // Saving an apartment marks its building too, so the building is
           // recognisable in the list without opening it.
-          : isFavorite || savedUnitCount > 0
+          : (highlighted ?? (isFavorite || savedUnitCount > 0))
           ? 'border-rose-300 shadow-sm shadow-rose-100 hover:border-rose-400'
           : 'border-slate-100 hover:border-slate-300'
       }`}

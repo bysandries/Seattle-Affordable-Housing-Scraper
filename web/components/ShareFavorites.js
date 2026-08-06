@@ -67,9 +67,9 @@ export default function ShareFavorites({ state, disabled }) {
         title={
           disabled
             ? 'Save some homes first, then share the list'
-            : 'Copy a link to this list of saved homes'
+            : 'Copy a link to your saved list'
         }
-        aria-label="Share saved homes"
+        aria-label="Share favorites"
         className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ${
           disabled
             ? 'bg-white text-slate-300 border-slate-200 cursor-not-allowed'
@@ -79,7 +79,7 @@ export default function ShareFavorites({ state, disabled }) {
         }`}
       >
         <ShareIcon />
-        {status === 'copied' ? 'Link copied' : 'Share'}
+        {status === 'copied' ? 'Link copied' : 'Share favorites'}
       </button>
 
       {status === 'manual' && (
