@@ -337,10 +337,14 @@ Open [http://localhost:0616](http://localhost:0616) to view the application.
   the recipient saved. Anything since delisted is reported rather than quietly
   dropped.
 
-  Note that AppFolio property ids are a hash of the normalized building address,
-  so changing that normalization (see `addresses.py`) reissues them and
-  invalidates previously shared links for those buildings. Seattle and WSHFC ids
-  are stable.
+  Links survive id changes. AppFolio property ids are a hash of the normalized
+  building address, so changing that normalization (see `addresses.py`) reissues
+  them. A link therefore carries each building's **raw** address alongside its
+  id; on open, `POST /api/properties` re-normalizes those addresses under the
+  current rules and hands back today's ids. Carrying the raw address rather than
+  the normalized key is the whole point — a key computed under old rules would
+  go stale exactly as the id did. Links made before this shipped have no
+  addresses and still fall back to id-only matching.
 - **View Modes** - Split view, list-only, or map-only
 - **Pagination** - 48 properties per page
 

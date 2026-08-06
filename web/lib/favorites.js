@@ -1,11 +1,16 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { addressKey } from '@/lib/addresses'
 
-const KEY = 'shs.favorites.v2'
-const LEGACY_KEY = 'shs.favorites.v1'
+const KEY = 'shs.favorites.v3'
+const LEGACY_KEYS = ['shs.favorites.v2', 'shs.favorites.v1']
 
-const EMPTY = { properties: [], units: [] }
+// `places` records the street address of every building referenced here, keyed
+// by id. Ids for scraped buildings are derived from a normalized address, so
+// they are reissued whenever that normalization changes; an address survives
+// that and lets a shared link find the building again.
+const EMPTY = { properties: [], units: [], places: {} }
 
 /**
  * Stable identity for a unit.
@@ -28,33 +33,45 @@ export function unitKey(unit) {
   ].join(':')
 }
 
+function normalize(parsed) {
+  return {
+    properties: Array.isArray(parsed?.properties)
+      ? parsed.properties.map(Number).filter(Number.isFinite)
+      : [],
+    units: Array.isArray(parsed?.units)
+      ? parsed.units.filter((u) => u && typeof u.key === 'string')
+      : [],
+    places: parsed?.places && typeof parsed.places === 'object' ? parsed.places : {},
+  }
+}
+
 function read() {
   if (typeof window === 'undefined') return EMPTY
   try {
     const raw = window.localStorage.getItem(KEY)
-    if (raw) {
-      const parsed = JSON.parse(raw)
-      return {
-        properties: Array.isArray(parsed?.properties)
-          ? parsed.properties.map(Number).filter(Number.isFinite)
-          : [],
-        units: Array.isArray(parsed?.units)
-          ? parsed.units.filter((u) => u && typeof u.key === 'string')
-          : [],
+    if (raw) return normalize(JSON.parse(raw))
+
+    // Earlier shapes: v2 had properties/units but no addresses, v1 was a bare
+    // array of property ids. Both upgrade cleanly, just without addresses —
+    // those entries fall back to id-only matching, as they do today.
+    for (const legacyKey of LEGACY_KEYS) {
+      const legacy = window.localStorage.getItem(legacyKey)
+      if (!legacy) continue
+      const parsed = JSON.parse(legacy)
+      if (Array.isArray(parsed)) {
+        return { ...EMPTY, properties: parsed.map(Number).filter(Number.isFinite) }
       }
-    }
-    // Favorites saved before units could be hearted were bare property ids.
-    const legacy = window.localStorage.getItem(LEGACY_KEY)
-    if (legacy) {
-      const ids = JSON.parse(legacy)
-      if (Array.isArray(ids)) {
-        return { properties: ids.map(Number).filter(Number.isFinite), units: [] }
-      }
+      return normalize(parsed)
     }
     return EMPTY
   } catch {
     return EMPTY
   }
+}
+
+function dropPlace(places, id) {
+  const { [id]: _removed, ...rest } = places
+  return rest
 }
 
 function write(next) {
@@ -89,31 +106,45 @@ export function useFavorites() {
     }
   }, [])
 
-  const toggleProperty = useCallback((id) => {
+  /** Record where a building is, so a shared link can find it again later. */
+  const rememberPlace = (places, id, place) => {
+    if (!place?.address) return places
+    return { ...places, [id]: { a: place.address, c: place.city || '' } }
+  }
+
+  const toggleProperty = useCallback((id, place) => {
     const numeric = Number(id)
     const cur = read()
-    const next = {
-      ...cur,
-      properties: cur.properties.includes(numeric)
-        ? cur.properties.filter((x) => x !== numeric)
-        : [...cur.properties, numeric],
-    }
+    const removing = cur.properties.includes(numeric)
+    const properties = removing
+      ? cur.properties.filter((x) => x !== numeric)
+      : [...cur.properties, numeric]
+    const stillReferenced = removing && cur.units.some((u) => u.propertyId === numeric)
+    const places = removing
+      ? (stillReferenced ? cur.places : dropPlace(cur.places, numeric))
+      : rememberPlace(cur.places, numeric, place)
+    const next = { ...cur, properties, places }
     write(next)
     setState(next)
   }, [])
 
-  const toggleUnit = useCallback((unit, propertyId) => {
+  const toggleUnit = useCallback((unit, propertyId, place) => {
     const key = unitKey(unit)
     if (!key) return
+    const numeric = Number(propertyId)
     const cur = read()
-    const next = {
-      ...cur,
-      units: cur.units.some((u) => u.key === key)
-        ? cur.units.filter((u) => u.key !== key)
-        // propertyId is stored alongside so the list filter can resolve saved
-        // units back to buildings without another round trip.
-        : [...cur.units, { key, propertyId: Number(propertyId) }],
-    }
+    const removing = cur.units.some((u) => u.key === key)
+    const units = removing
+      ? cur.units.filter((u) => u.key !== key)
+      // propertyId is stored alongside so the list filter can resolve saved
+      // units back to buildings without another round trip.
+      : [...cur.units, { key, propertyId: numeric }]
+    const stillReferenced =
+      cur.properties.includes(numeric) || units.some((u) => u.propertyId === numeric)
+    const places = removing
+      ? (stillReferenced ? cur.places : dropPlace(cur.places, numeric))
+      : rememberPlace(cur.places, numeric, place)
+    const next = { ...cur, units, places }
     write(next)
     setState(next)
   }, [])
@@ -145,6 +176,7 @@ export function useFavorites() {
   return {
     properties: state.properties,
     units: state.units,
+    places: state.places,
     propertyIds,
     isPropertyFavorite,
     isUnitFavorite,
@@ -198,11 +230,14 @@ async function inflate(bytes) {
 }
 
 /** Encode a favorites state into the compact token that rides in the URL. */
-export async function encodeShare({ properties = [], units = [] }) {
+export async function encodeShare({ properties = [], units = [], places = {} }) {
   const payload = JSON.stringify({
-    v: 1,
+    v: 2,
     p: properties,
     u: units.map((u) => [u.propertyId, u.key]),
+    // Addresses of every referenced building, so the link still resolves after
+    // an id changes. Compresses well — they share street and city tokens.
+    q: places,
   })
   const raw = new TextEncoder().encode(payload)
   const packed = await deflate(raw)
@@ -223,6 +258,8 @@ export async function decodeShare(token) {
             .filter((entry) => Array.isArray(entry) && typeof entry[1] === 'string')
             .map(([propertyId, key]) => ({ propertyId: Number(propertyId), key }))
         : [],
+      // Absent in v1 links, which then fall back to id-only matching.
+      places: parsed?.q && typeof parsed.q === 'object' ? parsed.q : {},
     }
   } catch {
     return null
@@ -238,6 +275,54 @@ export async function buildShareUrl(state) {
   return url.toString()
 }
 
+/**
+ * Re-point a shared list at whatever ids its buildings have now.
+ *
+ * Ids for scraped buildings are derived from a normalized address and change
+ * when that normalization does, so a link made before such a change carries
+ * dead ids. The addresses travel with it; this asks the server what they map to
+ * today and rewrites the list. Entries with no address, or that genuinely no
+ * longer exist, are left as they were.
+ */
+export async function resolveShared(list) {
+  const entries = Object.entries(list.places || {})
+  if (!entries.length) return list
+
+  const keyed = entries.map(([id, place]) => ({
+    oldId: Number(id),
+    key: addressKey(place.a, place.c),
+  }))
+
+  let found = {}
+  try {
+    const res = await fetch('/api/properties', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ keys: [...new Set(keyed.map((k) => k.key))] }),
+    })
+    if (res.ok) found = await res.json()
+  } catch {
+    return list // Offline or server error: fall back to the ids as shared.
+  }
+
+  const remap = new Map()
+  for (const { oldId, key } of keyed) {
+    const current = found[key]
+    if (current !== undefined && current !== oldId) remap.set(oldId, current)
+  }
+  if (!remap.size) return list
+
+  const swap = (id) => remap.get(Number(id)) ?? Number(id)
+  return {
+    ...list,
+    properties: [...new Set(list.properties.map(swap))],
+    units: list.units.map((u) => ({ ...u, propertyId: swap(u.propertyId) })),
+    places: Object.fromEntries(
+      Object.entries(list.places).map(([id, place]) => [swap(id), place])
+    ),
+  }
+}
+
 export function readShareToken() {
   if (typeof window === 'undefined') return null
   return new URLSearchParams(window.location.search).get(SHARE_PARAM)
@@ -251,12 +336,13 @@ export function clearShareToken() {
 }
 
 /** Merge a shared list into this browser's own favorites. */
-export function importShared({ properties = [], units = [] }) {
+export function importShared({ properties = [], units = [], places = {} }) {
   const cur = read()
   const keys = new Set(cur.units.map((u) => u.key))
   const next = {
     properties: [...new Set([...cur.properties, ...properties.map(Number)])],
     units: [...cur.units, ...units.filter((u) => !keys.has(u.key))],
+    places: { ...cur.places, ...places },
   }
   write(next)
   return next

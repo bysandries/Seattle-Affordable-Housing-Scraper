@@ -141,7 +141,9 @@ export default function PropertyModal({ propertyId, onClose, sharedUnitKeys }) {
           <div className="absolute top-4 right-4 flex items-center gap-2">
             <HeartButton
               active={isPropertyFavorite(propertyId)}
-              onToggle={() => toggleProperty(propertyId)}
+              onToggle={() =>
+                toggleProperty(propertyId, { address: data?.address, city: data?.city })
+              }
               label="saved buildings"
             />
             <button
@@ -263,7 +265,12 @@ export default function PropertyModal({ propertyId, onClose, sharedUnitKeys }) {
                           <td className="px-2 py-3">
                             <HeartButton
                               active={isUnitFavorite(u) || inShared(u)}
-                              onToggle={() => toggleUnit(u, propertyId)}
+                              onToggle={() =>
+                                toggleUnit(u, propertyId, {
+                                  address: data?.address,
+                                  city: data?.city,
+                                })
+                              }
                               size="sm"
                               label="saved apartments"
                             />

@@ -3,6 +3,7 @@ import fs from 'fs'
 import { createRequire } from 'module'
 import initSqlJs from 'sql.js'
 import { bedroomAliases } from '@/lib/bedrooms'
+import { addressKey } from '@/lib/addresses'
 
 let _db = null
 
@@ -349,6 +350,33 @@ export async function getNeighborhoods() {
      ORDER BY neighborhood`
   )
   return rows.map((r) => r.neighborhood)
+}
+
+/**
+ * Map normalized address keys to current property ids.
+ *
+ * Scraped buildings take their id from a hash of the normalized address, so a
+ * change to that normalization reissues the id and orphans anything holding the
+ * old one. Shared links carry the raw address for exactly this reason: it is
+ * re-normalized here, against whatever the rules are now, and finds the
+ * building again.
+ */
+export async function resolveAddressKeys(keys) {
+  const wanted = new Set(keys)
+  if (!wanted.size) return {}
+  const db = await getDb()
+  const rows = execQuery(
+    db,
+    `SELECT id, address, city FROM properties WHERE address IS NOT NULL AND address != ''`
+  )
+  const found = {}
+  for (const row of rows) {
+    const key = addressKey(row.address, row.city)
+    // First writer wins, so a stable dataset id is preferred over a scraped
+    // duplicate at the same address.
+    if (wanted.has(key) && found[key] === undefined) found[key] = row.id
+  }
+  return found
 }
 
 export async function getCounties() {

@@ -11,6 +11,7 @@ import {
   decodeShare,
   importShared,
   readShareToken,
+  resolveShared,
   useFavorites,
 } from '@/lib/favorites'
 
@@ -44,6 +45,7 @@ export default function HomePage() {
   const {
     properties: favoriteProperties,
     units: favoriteUnits,
+    places: favoritePlaces,
     propertyIds: favoritePropertyIds,
     isPropertyFavorite,
     toggleProperty,
@@ -81,12 +83,16 @@ export default function HomePage() {
     const token = readShareToken()
     if (!token) return
     let cancelled = false
-    decodeShare(token).then((list) => {
-      if (cancelled || !list || (!list.properties.length && !list.units.length)) return
-      setShared(list)
-      setFilters((f) => ({ ...f, favoritesOnly: true, page: 1 }))
-      clearShareToken()
-    })
+    decodeShare(token)
+      // Re-point the list at current ids before showing it, so a building whose
+      // id was reissued still appears instead of reading as "no longer listed".
+      .then((list) => (list ? resolveShared(list) : null))
+      .then((list) => {
+        if (cancelled || !list || (!list.properties.length && !list.units.length)) return
+        setShared(list)
+        setFilters((f) => ({ ...f, favoritesOnly: true, page: 1 }))
+        clearShareToken()
+      })
     return () => { cancelled = true }
   }, [])
 
@@ -192,7 +198,7 @@ export default function HomePage() {
         return false
       return true
     })
-  }, [mapProperties, filters, favoritePropertyIds])
+  }, [mapProperties, filters, activeFavoriteIds])
 
   const hasActiveFilters = Object.entries(filters).some(
     ([k, v]) => k !== 'page' && v !== DEFAULT_FILTERS[k]
@@ -251,7 +257,11 @@ export default function HomePage() {
         cities={cities}
         counties={counties}
         favoriteCount={favoriteCount}
-        favoritesState={{ properties: favoriteProperties, units: favoriteUnits }}
+        favoritesState={{
+          properties: favoriteProperties,
+          units: favoriteUnits,
+          places: favoritePlaces,
+        }}
         total={total}
         onChange={handleFilterChange}
       />
@@ -345,7 +355,9 @@ export default function HomePage() {
                         isSelected={selectedId === p.id}
                         onClick={() => handleCardClick(p.id)}
                         isFavorite={isPropertyFavorite(p.id)}
-                        onToggleFavorite={() => toggleProperty(p.id)}
+                        onToggleFavorite={() =>
+                          toggleProperty(p.id, { address: p.address, city: p.city })
+                        }
                         savedUnitCount={savedUnitCount(p.id)}
                       />
                     ))}
