@@ -104,6 +104,18 @@ export default function HomePage() {
     return [...new Set([...shared.properties, ...shared.units.map((u) => u.propertyId)])]
   }, [shared, favoritePropertyIds])
 
+  // Buildings to mark on the map: hearted outright, or holding a saved
+  // apartment. Shown while browsing, not only under the favorites filter.
+  const savedIds = useMemo(() => new Set(activeFavoriteIds.map(Number)), [activeFavoriteIds])
+
+  const sharedSavedUnitCount = useCallback(
+    (id) =>
+      shared
+        ? shared.units.filter((u) => Number(u.propertyId) === Number(id)).length
+        : savedUnitCount(id),
+    [shared, savedUnitCount]
+  )
+
   const sharedUnitKeys = useMemo(
     () => (shared ? new Set(shared.units.map((u) => u.key)) : null),
     [shared]
@@ -358,7 +370,7 @@ export default function HomePage() {
                         onToggleFavorite={() =>
                           toggleProperty(p.id, { address: p.address, city: p.city })
                         }
-                        savedUnitCount={savedUnitCount(p.id)}
+                        savedUnitCount={sharedSavedUnitCount(p.id)}
                       />
                     ))}
                   </div>
@@ -413,6 +425,8 @@ export default function HomePage() {
               highlightId={selectedId}
               onSelect={handleMapSelect}
               fitTo={filters.city || filters.county}
+              savedIds={savedIds}
+              savedUnitCountFor={sharedSavedUnitCount}
             />
           </div>
         )}

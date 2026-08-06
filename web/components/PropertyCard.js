@@ -93,6 +93,10 @@ export default function PropertyCard({
       className={`w-full text-left bg-white rounded-xl border-2 transition-all duration-150 hover:shadow-md hover:-translate-y-0.5 p-4 flex flex-col gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400 ${
         isSelected
           ? 'border-blue-500 shadow-md shadow-blue-100'
+          // Saving an apartment marks its building too, so the building is
+          // recognisable in the list without opening it.
+          : isFavorite || savedUnitCount > 0
+          ? 'border-rose-300 shadow-sm shadow-rose-100 hover:border-rose-400'
           : 'border-slate-100 hover:border-slate-300'
       }`}
     >

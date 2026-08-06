@@ -13,7 +13,9 @@ const PROGRAM_COLOR = {
   'Market Rate': MARKET_COLOR,
 }
 
-export default function Map({ properties, highlightId, onSelect, fitTo }) {
+const SAVED_RING = '#e11d48'
+
+export default function Map({ properties, highlightId, onSelect, fitTo, savedIds, savedUnitCountFor }) {
   const containerRef = useRef(null)
   const mapRef = useRef(null)
   const markersRef = useRef({})
@@ -64,12 +66,17 @@ export default function Map({ properties, highlightId, onSelect, fitTo }) {
         if (!p.lat || !p.long) return
 
         const hasListings = p.listing_count > 0
+        // A building counts as saved whether it was hearted itself or holds a
+        // saved apartment — either way the whole building is marked, so a saved
+        // unit is findable on the map.
+        const saved = !!savedIds && savedIds.has(Number(p.id))
+        const savedUnits = savedUnitCountFor ? savedUnitCountFor(p.id) : 0
 
         const marker = L.circleMarker([p.lat, p.long], {
-          radius: hasListings ? 9 : 6,
+          radius: saved ? (hasListings ? 11 : 9) : hasListings ? 9 : 6,
           fillColor: PROGRAM_COLOR[p.program] ?? AFFORDABLE_COLOR,
-          color: '#fff',
-          weight: 2,
+          color: saved ? SAVED_RING : '#fff',
+          weight: saved ? 4 : 2,
           opacity: 1,
           fillOpacity: hasListings ? 0.95 : 0.65,
         })
@@ -78,6 +85,7 @@ export default function Map({ properties, highlightId, onSelect, fitTo }) {
           `<strong class="text-sm">${p.building_name}</strong><br/>
            <span class="text-slate-500">${p.address}</span><br/>
            <span class="text-xs mt-1 inline-block">${p.neighborhood}</span>
+           ${saved ? `<br/><span class="text-xs font-medium" style="color:${SAVED_RING}">♥ Saved${savedUnits ? ` · ${savedUnits} apartment${savedUnits !== 1 ? 's' : ''}` : ''}</span>` : ''}
            ${hasListings ? '<br/><span class="text-green-600 font-medium text-xs">✓ Listings available</span>' : ''}`,
           { maxWidth: 220 }
         )
@@ -87,7 +95,7 @@ export default function Map({ properties, highlightId, onSelect, fitTo }) {
         markersRef.current[p.id] = marker
       })
     })
-  }, [mapReady, properties, onSelect])
+  }, [mapReady, properties, onSelect, savedIds, savedUnitCountFor])
 
   // Recentre when the city filter changes — the map opens on Seattle, so
   // selecting another city would otherwise leave the viewport somewhere empty.
@@ -109,10 +117,13 @@ export default function Map({ properties, highlightId, onSelect, fitTo }) {
     import('leaflet').then((L) => {
       Object.entries(markersRef.current).forEach(([id, marker]) => {
         const isSelected = Number(id) === Number(highlightId)
+        // Restore the saved ring rather than resetting every marker to white,
+        // which previously erased the highlight as soon as anything was clicked.
+        const saved = !!savedIds && savedIds.has(Number(id))
         marker.setStyle({
-          radius: isSelected ? 13 : marker.options.radius < 10 ? 9 : 6,
-          color: isSelected ? '#1e40af' : '#fff',
-          weight: isSelected ? 3 : 2,
+          radius: isSelected ? 13 : marker.options.radius,
+          color: isSelected ? '#1e40af' : saved ? SAVED_RING : '#fff',
+          weight: isSelected ? 3 : saved ? 4 : 2,
           fillOpacity: isSelected ? 1 : marker.options.fillOpacity,
         })
         if (isSelected) {
@@ -124,7 +135,7 @@ export default function Map({ properties, highlightId, onSelect, fitTo }) {
         }
       })
     })
-  }, [mapReady, highlightId, properties])
+  }, [mapReady, highlightId, properties, savedIds])
 
   return (
     <div className="relative w-full h-full">
@@ -146,6 +157,13 @@ export default function Map({ properties, highlightId, onSelect, fitTo }) {
         <div className="flex items-center gap-2 border-t pt-1 mt-1">
           <span className="inline-block w-3.5 h-3.5 rounded-full bg-amber-400 border-2 border-white shadow" />
           Has live pricing
+        </div>
+        <div className="flex items-center gap-2">
+          <span
+            className="inline-block w-3.5 h-3.5 rounded-full bg-slate-300 shadow"
+            style={{ border: '3px solid #e11d48' }}
+          />
+          Saved
         </div>
       </div>
     </div>
