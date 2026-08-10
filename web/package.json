@@ -1,5 +1,5 @@
 {
-  "name": "seattle-housing-web",
+  "name": "wa-housing-search-engine-web",
   "private": true,
   "pnpm": {
     "onlyBuiltDependencies": []

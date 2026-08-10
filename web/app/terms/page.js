@@ -16,7 +16,7 @@ export default function TermsPage() {
 
         <h2 className="text-xl font-bold text-slate-900 mt-8 mb-4">1. Educational and Research Use</h2>
         <p>
-          This website and its associated data scraping tools are provided <strong>strictly for educational and research purposes</strong>. The information provided is for general informational purposes only and does not constitute housing, legal, or financial advice.
+          This website and its associated search-engine indexing tools are provided <strong>strictly for educational and research purposes</strong>. The information provided is for general informational purposes only and does not constitute housing, legal, or financial advice.
         </p>
 
         <h2 className="text-xl font-bold text-slate-900 mt-8 mb-4">2. Disclaimer of Warranties</h2>

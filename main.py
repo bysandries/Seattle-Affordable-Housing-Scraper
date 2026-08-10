@@ -1,5 +1,5 @@
 """
-Seattle Affordable Housing Scraper — CLI entry point.
+Washington Affordable Housing Search Engine — CLI entry point.
 
 Usage:
     python main.py fetch              Pull all 742 properties from ArcGIS
@@ -204,7 +204,7 @@ def cmd_contact(_args: argparse.Namespace) -> None:
     console.print(
         "[bold red]Disabled for ethical reasons.[/] "
         "Automated form submission and chatbot spamming violates the 'Good Samaritan' "
-        "scraping principles for this educational research project."
+        "crawling principles for this educational research project."
     )
 
 
@@ -245,7 +245,7 @@ def cmd_stats(_args: argparse.Namespace) -> None:
 
     console.print(f"[bold]Properties:[/] {props}")
     console.print(f"  Websites OK: {ok}  |  Unreachable: {unreachable}")
-    console.print(f"[bold]Unit listings scraped:[/] {units}  (with rent data: {with_rent})")
+    console.print(f"[bold]Unit listings indexed:[/] {units}  (with rent data: {with_rent})")
     console.print(f"[bold]Live listings (current snapshot):[/] {live}  (with rent: {live_rent})")
     console.print(
         f"  Availability — now: {av_now}  |  future-dated: {av_future}  |  "
@@ -263,7 +263,7 @@ def cmd_stats(_args: argparse.Namespace) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Seattle Affordable Housing Scraper",
+        description="Washington Affordable Housing Search Engine",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )

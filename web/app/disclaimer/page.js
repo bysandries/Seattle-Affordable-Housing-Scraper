@@ -12,7 +12,7 @@ export default function DisclaimerPage() {
         
         <h2 className="text-xl font-bold text-slate-900 mt-8 mb-4">For Educational & Research Purposes Only</h2>
         <p>
-          This website, including its data collection systems and frontend interfaces, was created exclusively as a non-commercial educational and research project. Its primary purpose is to explore techniques in web data aggregation, automated ethical scraping, and geographical mapping.
+          This website, including its data collection systems and frontend interfaces, was created exclusively as a non-commercial educational and research project. Its primary purpose is to explore techniques in web data aggregation, search-engine style crawling and indexing, and geographical mapping.
         </p>
         
         <h2 className="text-xl font-bold text-slate-900 mt-8 mb-4">No Affiliation</h2>
@@ -29,9 +29,9 @@ export default function DisclaimerPage() {
           <strong>Do not rely on this information for critical housing or financial decisions.</strong> Prices, availability dates, and income restrictions change rapidly. You must independently verify all details by contacting the property or leasing office directly.
         </p>
 
-        <h2 className="text-xl font-bold text-slate-900 mt-8 mb-4">Ethical Web Scraping</h2>
+        <h2 className="text-xl font-bold text-slate-900 mt-8 mb-4">Ethical Crawling & Indexing</h2>
         <p>
-          The automated tools backing this project are designed to follow ethical web scraping practices. They respect <code>robots.txt</code> files, enforce strict concurrency limits, and utilize generous request delays to prevent undue load on external servers. Furthermore, all automated form submission and contact functionalities have been strictly disabled to ensure compliance with anti-spam legislation and ethical guidelines.
+          The automated crawler backing this search engine follows the same ethical practices as established web search engines. It respects <code>robots.txt</code> files, enforces strict concurrency limits, and utilizes generous request delays to prevent undue load on external servers. Furthermore, all automated form submission and contact functionalities have been strictly disabled to ensure compliance with anti-spam legislation and ethical guidelines.
         </p>
       </div>
     </div>

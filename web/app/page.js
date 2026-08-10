@@ -224,7 +224,7 @@ export default function HomePage() {
           <span className="text-2xl">🏙</span>
           <div>
             <h1 className="font-bold text-slate-900 text-base leading-tight">
-              Washington Affordable Housing
+              Washington Affordable Housing Search
             </h1>
             <p className="text-xs text-slate-400 leading-tight">
               {mapProperties.length} properties · Last updated: {new Date().toLocaleDateString()}

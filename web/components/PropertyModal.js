@@ -311,7 +311,7 @@ export default function PropertyModal({ propertyId, onClose, sharedUnitKeys }) {
                 <p className="text-xs text-slate-400 mt-2">
                   ♡ saves a single apartment
                   {units.some((u) => u.listing_url) ? ' · click a unit to open its listing' : ''}
-                  {' · prices may have changed since scraping'}
+                  {' · prices may have changed since last indexed'}
                 </p>
               </div>
             )}

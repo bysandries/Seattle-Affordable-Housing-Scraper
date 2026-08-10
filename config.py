@@ -47,7 +47,7 @@ RENT_LIMIT_PDFS = {
 
 USER_AGENT = os.getenv(
     "USER_AGENT",
-    "SeattleHousingScrapper/1.0 (Educational Research Project) Mozilla/5.0",
+    "WAHousingSearchEngine/1.0 (Educational Research Project) Mozilla/5.0",
 )
 
 SCRAPE_CONCURRENCY = int(os.getenv("SCRAPE_CONCURRENCY", "2"))

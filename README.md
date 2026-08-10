@@ -1,12 +1,12 @@
-# Washington Affordable Housing Finder
+# Washington Affordable Housing Search Engine
 
-A full-stack application that scrapes, stores, and visualizes affordable housing data for Washington State. It combines the City of Seattle's ArcGIS dataset, the state finance commission's statewide tax-credit portfolio (all 39 counties, geocoded via HUD), and live listings harvested from property-management portals — then discovers and scrapes property websites for unit availability and pricing, and presents everything through an interactive map and filterable list.
+A full-stack, special-purpose search engine that indexes, stores, and visualizes affordable housing data for Washington State. It combines the City of Seattle's ArcGIS dataset, the state finance commission's statewide tax-credit portfolio (all 39 counties, geocoded via HUD), and live listings collected from property-management portals — then discovers, crawls, and indexes property websites for unit availability and pricing, and presents everything through an interactive map and filterable list. Like any web search engine, it only visits public pages, respects `robots.txt`, and rate-limits itself.
 
 ## Architecture Overview
 
 The project consists of two main components:
 
-1. **Python Scraper Backend** - Multi-stage pipeline that fetches properties, discovers websites, and legally scrapes public unit data
+1. **Python Search Engine Backend** - Multi-stage crawl/index pipeline that fetches properties, discovers websites, and legally indexes public unit data
 2. **Next.js Web Frontend** - Interactive UI with Leaflet map, filterable listings, and detailed property views
 
 ```
@@ -20,7 +20,7 @@ SeattleHousingScrapper/
 ├── scrapers/
 │   ├── arcgis.py              # Fetches properties from ArcGIS FeatureServer
 │   ├── website_discovery.py   # Validates/discovers property websites
-│   └── property_scraper.py    # Scrapes property websites for unit data
+│   └── property_scraper.py    # Crawls property websites for unit data
 ├── data/
 │   └── seattle_housing.db     # SQLite database (created after fetch)
 ├── output/                    # Exported data (CSV/JSON)
@@ -39,7 +39,7 @@ SeattleHousingScrapper/
 - Node.js 18+
 - npm or yarn
 
-### Python Scraper Setup
+### Python Search Engine Setup
 
 ```bash
 # Create and activate virtual environment
@@ -65,9 +65,9 @@ npm install
 
 ## Usage
 
-### Scraper Pipeline
+### Search Engine Pipeline
 
-The scraper follows a 4-stage waterfall pipeline. Each stage builds on the previous one:
+The search engine follows a 4-stage waterfall pipeline. Each stage builds on the previous one:
 
 #### Stage 1: Fetch Properties from ArcGIS
 
@@ -96,17 +96,17 @@ python main.py discover
 - Filters out listing aggregators (Zillow, Apartments.com, Trulia, etc.)
 - Updates `website_status` and `website_discovered` fields in the database
 
-#### Stage 3: Scrape Property Websites
+#### Stage 3: Crawl Property Websites
 
-Visits each property's website to extract live unit availability, pricing, and square footage:
+Visits each property's website to index live unit availability, pricing, and square footage:
 
 ```bash
-python main.py scrape              # Scrape all properties
+python main.py scrape              # Crawl all properties
 python main.py scrape --limit 10   # Test with 10 properties
 ```
 
 **What it does:**
-- Uses httpx for fast static site scraping
+- Uses httpx for fast static-site crawling
 - Falls back to Playwright for JavaScript-heavy sites
 - Detects property management platform iframes (AppFolio, Entrata, Yardi, RealPage, Knock) and queries them directly
 - Extracts: unit type (studio, 1BR, 2BR, 3BR), rent range, square footage, availability date, amenities
@@ -116,13 +116,13 @@ python main.py scrape --limit 10   # Test with 10 properties
 
 **AppFolio master portals** (`python main.py appfolio`, `APPFOLIO_MASTER_URLS` in
 `config.py`): many Seattle PM companies publish every building they manage at
-`<company>.appfolio.com/listings`. Scraping the portal directly reaches all of
+`<company>.appfolio.com/listings`. Crawling the portal directly reaches all of
 their buildings, not just the one whose own site embeds the widget, and matches
 them back to properties by street address. 26 portals currently produce matches,
 covering 230 properties.
 
 To find more, two passes work well: sweep every `properties.website` for
-`*.appfolio.com` (catches portals the per-site scraper missed because they had no
+`*.appfolio.com` (catches portals the per-site crawler missed because they had no
 vacancy at the time), and web-search for Seattle AppFolio listing portals. Verify
 a candidate matches at least one property before adding it.
 
@@ -192,19 +192,19 @@ python main.py rentlimits
 
 ### Availability Dates
 
-Every scraped unit gets its availability normalized into a comparable form, stored alongside the raw text:
+Every indexed unit gets its availability normalized into a comparable form, stored alongside the raw text:
 
 | column | meaning |
 |---|---|
 | `available_from` | raw text as published, e.g. `"Now"`, `"8/17/26"`, `"Waitlist Closed 6/5/2026"` |
 | `available_date` | normalized ISO date (`YYYY-MM-DD`), or empty when no date was published |
 | `availability_status` | `now` · `future` · `waitlist` · `unknown` |
-| `is_current` | `1` for the newest scrape of a property, `0` for retained history |
+| `is_current` | `1` for the newest crawl of a property, `0` for retained history |
 | `source` | which ingest path wrote the row (`site`, `appfolio-master`, `lihi`) |
 
 Normalization lives in `availability.py` and handles the formats these sites actually use — `9/1/26`, `09/01/2026`, `2026-09-01`, `Sept 1st`, `September 1, 2026`, `Available Now`, `Move-in ready`, `Jan 2026` — plus anti-patterns that must *not* become dates (`parking available 24/7`, `3 available units`). Dates published without a year roll forward to the next occurrence.
 
-**Snapshot semantics:** re-scraping never mixes old and new listings. Each run marks its rows `is_current = 1` and demotes that property's previous rows from the same source, so live-availability queries stay clean while history is preserved. Currency is scoped per source because the per-site scraper and the AppFolio portal scraper both write units for the same property.
+**Snapshot semantics:** re-crawling never mixes old and new listings. Each run marks its rows `is_current = 1` and demotes that property's previous rows from the same source, so live-availability queries stay clean while history is preserved. Currency is scoped per source because the per-site crawler and the AppFolio portal crawler both write units for the same property.
 
 ```sql
 -- units available now or soon, freshest first
@@ -239,7 +239,7 @@ python main.py qualify
 
 ### Website Affordable-Housing Pages
 
-Scrapes each affordable building's own website for publicly posted MFTE/MHA info:
+Crawls each affordable building's own website for publicly posted MFTE/MHA info:
 
 ```bash
 python main.py pages              # all buildings (throttled, ~15 min)
@@ -254,16 +254,16 @@ python main.py pages --limit 20   # test run
 
 ### Running the Full Pipeline
 
-Run all scraping stages in sequence:
+Run all pipeline stages in sequence:
 
 ```bash
 python main.py all                 # Full pipeline
-python main.py all --limit 10      # Full pipeline with scrape limit
+python main.py all --limit 10      # Full pipeline with crawl limit
 ```
 
 ### Exporting Data
 
-Export scraped data to CSV and JSON formats:
+Export indexed data to CSV and JSON formats:
 
 ```bash
 python main.py export
@@ -281,7 +281,7 @@ python main.py export
 
 ### Database Statistics
 
-View current scraping progress:
+View current indexing progress:
 
 ```bash
 python main.py stats
@@ -291,7 +291,7 @@ python main.py stats
 ```
 Properties: 742
   Websites OK: 523  |  Unreachable: 89
-Unit listings scraped: 1,247  (with rent data: 892)
+Unit listings indexed: 1,247  (with rent data: 892)
 ```
 
 ### Web Frontend
@@ -326,7 +326,7 @@ Open [http://localhost:0616](http://localhost:0616) to view the application.
   listings. The Favorites pill filters to buildings you saved or that hold a saved
   apartment. Stored per-browser in localStorage, since there are no accounts.
   Saved units are keyed by listing URL where available, not by row id — every
-  scrape reissues those
+  crawl reissues those
 - **Share a list** - the share button next to the Favorites filter copies a link
   with the whole list encoded in the URL, so a recipient needs no account and
   nothing is stored server-side. The payload is deflated before base64url
@@ -363,7 +363,7 @@ Create a `.env` file in the project root (copy from `.env.example`):
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `USER_AGENT` | Chrome 125 on macOS | HTTP request User-Agent header |
-| `SCRAPE_CONCURRENCY` | 10 | Max concurrent scraping workers |
+| `SCRAPE_CONCURRENCY` | 10 | Max concurrent crawl workers |
 | `REQUEST_TIMEOUT` | 30 | HTTP request timeout in seconds |
 
 ### Key Configuration (config.py)
@@ -389,7 +389,7 @@ One row per building. Key fields:
 
 ### Units Table
 
-Multiple rows per property (one per scraped unit listing):
+Multiple rows per property (one per indexed unit listing):
 - `property_id` - Foreign key to properties
 - `unit_type` - Studio, 1BR, 2BR, 3BR, etc.
 - `rent_min`, `rent_max` - Rent range
@@ -397,9 +397,9 @@ Multiple rows per property (one per scraped unit listing):
 - `available_date` - Availability date
 - `description`, `amenities`
 
-## Scraping Strategies
+## Crawling Strategies
 
-### Property Website Scraper (property_scraper.py)
+### Property Website Crawler (property_scraper.py)
 
 Multi-strategy approach for maximum data extraction:
 
@@ -429,7 +429,7 @@ The codebase is organized into 16 main communities:
 - **CLI Commands** - Entry point with 7 subcommands (fetch, discover, scrape, all, export, stats, contact)
 - **Database Layer** - SQLite operations with WAL mode, connection pooling
 - **ArcGIS Fetcher & Models** - Property data models and ArcGIS API integration
-- **Property Scraper Pipeline** - Multi-strategy website scraping with platform detection
+- **Property Crawler Pipeline** - Multi-strategy website crawling with platform detection
 - **Website Discovery** - URL validation and DuckDuckGo search
 
 **Frontend (Next.js):**
@@ -446,7 +446,7 @@ The codebase is organized into 16 main communities:
 
 | Package | Purpose |
 |---------|---------|
-| `httpx[http2]>=0.27` | Async HTTP client for fast scraping |
+| `httpx[http2]>=0.27` | Async HTTP client for fast crawling |
 | `playwright>=1.44` | Browser automation for JS-heavy sites |
 | `beautifulsoup4>=4.12` | HTML parsing |
 | `lxml>=5.2` | Fast HTML/XML parser backend |
@@ -493,7 +493,7 @@ cd web && npm run dev
 ### Testing with Limited Data
 
 ```bash
-# Scrape only 10 properties
+# Crawl only 10 properties
 python main.py scrape --limit 10
 
 # Check results
@@ -506,7 +506,7 @@ python main.py stats
 # Re-fetch latest properties from ArcGIS
 python main.py fetch
 
-# Re-scrape websites for new availability data
+# Re-crawl websites for new availability data
 python main.py scrape
 
 # Export updated data
@@ -539,7 +539,7 @@ playwright install-deps
 ### Database Locked Errors
 
 The database uses WAL mode for better concurrency. If you encounter lock errors:
-- Ensure only one scraper process is running
+- Ensure only one crawler process is running
 - The web frontend uses read-only mode, so it won't cause locks
 
 ### No Websites Found
@@ -573,7 +573,7 @@ The frontend queries the SQLite file directly via `sql.js`, so the database ship
 - Both API routes pin `runtime = 'nodejs'`. They read from disk, which Edge cannot do.
 - `lib/db.js` locates the wasm through `require.resolve('sql.js')` rather than assuming `process.cwd()`, because a serverless function's working directory is not guaranteed to be the project root. If an asset is ever missing it throws with every path it tried, instead of a bare `ENOENT`.
 
-**Publishing refreshed data** — the database is a build artifact, so new scrapes only go live when the file is committed:
+**Publishing refreshed data** — the database is a build artifact, so new crawls only go live when the file is committed:
 
 ```bash
 python main.py all          # refresh everything
@@ -593,11 +593,11 @@ cd web && npm run build && npm start
 ## Ethical & Legal Disclaimer
 
 This project is intended strictly for **educational and research purposes**. 
-To ensure legal and ethical compliance with scraping guidelines (such as the CFAA and trespass to chattels), the project has been modified to:
+To ensure legal and ethical compliance with web-crawling guidelines (such as the CFAA and trespass to chattels), the search engine operates the way established web search engines do:
 - Clearly identify itself with a custom `User-Agent`.
-- Adhere to `robots.txt` guidelines before attempting to scrape.
+- Adhere to `robots.txt` guidelines before crawling any site.
 - Use explicit rate limiting (delays) to prevent server overload.
-- Only scrape publicly available factual data (no logins, bypassing CAPTCHAs, or unauthorized access).
+- Only index publicly available factual data (no logins, bypassing CAPTCHAs, or unauthorized access).
 - Omit any automated form submissions or "spamming" of property managers.
 
 Please do not use this code for commercial purposes or to build a competitive platform without explicit permission from the data owners.

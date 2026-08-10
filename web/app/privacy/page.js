@@ -28,7 +28,7 @@ export default function PrivacyPage() {
 
         <h2 className="text-xl font-bold text-slate-900 mt-8 mb-4">3. Data Sourcing</h2>
         <p>
-          The property data (rent prices, availability, locations) displayed on this website is collected from public web sources and the City of Seattle's open data portals. We do not scrape, collect, or display any personal data regarding tenants or prospective renters.
+          The property data (rent prices, availability, locations) displayed on this website is indexed from public web sources and the City of Seattle's open data portals, in the same way a search engine indexes public pages. We do not collect, index, or display any personal data regarding tenants or prospective renters.
         </p>
 
         <h2 className="text-xl font-bold text-slate-900 mt-8 mb-4">4. Third-Party Links</h2>
