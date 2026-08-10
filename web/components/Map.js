@@ -58,12 +58,14 @@ export default function Map({ properties, highlightId, onSelect, fitTo, savedIds
     if (!mapReady || !map || !properties) return
 
     import('leaflet').then((L) => {
-      // Remove old markers
-      Object.values(markersRef.current).forEach((m) => m.remove())
-      markersRef.current = {}
+      // Diff against the markers already on the map instead of recreating all
+      // of them: with ~2,800 properties a full teardown per filter change
+      // blocks the main thread long enough to freeze the tab.
+      const seen = new Set()
 
       properties.forEach((p) => {
         if (!p.lat || !p.long) return
+        seen.add(String(p.id))
 
         const hasListings = p.listing_count > 0
         // A building counts as saved whether it was hearted itself or holds a
@@ -72,27 +74,42 @@ export default function Map({ properties, highlightId, onSelect, fitTo, savedIds
         const saved = !!savedIds && savedIds.has(Number(p.id))
         const savedUnits = savedUnitCountFor ? savedUnitCountFor(p.id) : 0
 
-        const marker = L.circleMarker([p.lat, p.long], {
-          radius: saved ? (hasListings ? 11 : 9) : hasListings ? 9 : 6,
+        const radius = saved ? (hasListings ? 11 : 9) : hasListings ? 9 : 6
+        const style = {
           fillColor: PROGRAM_COLOR[p.program] ?? AFFORDABLE_COLOR,
           color: saved ? SAVED_RING : '#fff',
           weight: saved ? 4 : 2,
           opacity: 1,
           fillOpacity: hasListings ? 0.95 : 0.65,
-        })
-
-        marker.bindPopup(
+        }
+        const popup =
           `<strong class="text-sm">${p.building_name}</strong><br/>
            <span class="text-slate-500">${p.address}</span><br/>
            <span class="text-xs mt-1 inline-block">${p.neighborhood}</span>
            ${saved ? `<br/><span class="text-xs font-medium" style="color:${SAVED_RING}">♥ Saved${savedUnits ? ` · ${savedUnits} apartment${savedUnits !== 1 ? 's' : ''}` : ''}</span>` : ''}
-           ${hasListings ? '<br/><span class="text-green-600 font-medium text-xs">✓ Listings available</span>' : ''}`,
-          { maxWidth: 220 }
-        )
+           ${hasListings ? '<br/><span class="text-green-600 font-medium text-xs">✓ Listings available</span>' : ''}`
 
+        const existing = markersRef.current[p.id]
+        if (existing) {
+          existing.setStyle(style)
+          // Radius is not a Path style; setStyle silently ignores it.
+          existing.setRadius(radius)
+          existing.setPopupContent(popup)
+          return
+        }
+
+        const marker = L.circleMarker([p.lat, p.long], { radius, ...style })
+        marker.bindPopup(popup, { maxWidth: 220 })
         marker.on('click', () => onSelect && onSelect(p.id))
         marker.addTo(map)
         markersRef.current[p.id] = marker
+      })
+
+      Object.keys(markersRef.current).forEach((id) => {
+        if (!seen.has(String(id))) {
+          markersRef.current[id].remove()
+          delete markersRef.current[id]
+        }
       })
     })
   }, [mapReady, properties, onSelect, savedIds, savedUnitCountFor])

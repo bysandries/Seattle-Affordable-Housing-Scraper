@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import ShareFavorites from '@/components/ShareFavorites'
 
 const BEDROOM_OPTIONS = [
@@ -53,6 +53,29 @@ export default function FilterBar({
 
   const set = (key, value) => onChange({ ...filters, [key]: value, page: 1 })
 
+  // The search box is debounced: each keystroke refetches the list AND
+  // re-filters every map marker, so propagating per-key freezes the page.
+  // The draft keeps typing responsive; filters.search follows 250ms later.
+  const [searchDraft, setSearchDraft] = useState(filters.search)
+  const searchTimer = useRef(null)
+  const filtersRef = useRef(filters)
+  filtersRef.current = filters
+
+  // External resets (Clear filters, shared links) must update the box too.
+  useEffect(() => { setSearchDraft(filters.search) }, [filters.search])
+  useEffect(() => () => clearTimeout(searchTimer.current), [])
+
+  const setSearch = (value) => {
+    setSearchDraft(value)
+    clearTimeout(searchTimer.current)
+    // Read filters through the ref at fire time: another filter may have
+    // changed during the debounce window and must not be reverted.
+    searchTimer.current = setTimeout(
+      () => onChange({ ...filtersRef.current, search: value, page: 1 }),
+      250
+    )
+  }
+
   const activeCount = [
     filters.search,
     filters.neighborhood,
@@ -76,8 +99,8 @@ export default function FilterBar({
           <input
             type="text"
             placeholder="Search by name, address, neighborhood…"
-            value={filters.search}
-            onChange={(e) => set('search', e.target.value)}
+            value={searchDraft}
+            onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-9 pr-4 py-2 text-sm bg-slate-100 rounded-lg border-transparent focus:bg-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all placeholder:text-slate-400"
           />
         </div>
