@@ -178,11 +178,12 @@ function SearchBox({ value, onSearch }) {
           </svg>
         </button>
       )}
-      <span className="w-px h-6 mx-1 bg-gline dark:bg-gsurface-dark-chip shrink-0" aria-hidden="true" />
-      <span className="w-10 h-10 shrink-0 flex items-center justify-center" title="Voice search — decorative in this concept">
+      <span className="hidden sm:block w-px h-6 mx-1 bg-gline dark:bg-gsurface-dark-chip shrink-0" aria-hidden="true" />
+      {/* Decorative on desktop only — phones need the room for typing */}
+      <span className="hidden sm:flex w-10 h-10 shrink-0 items-center justify-center" title="Voice search — decorative in this concept">
         <MicIcon />
       </span>
-      <span className="w-10 h-10 shrink-0 flex items-center justify-center" title="Search by image — decorative in this concept">
+      <span className="hidden sm:flex w-10 h-10 shrink-0 items-center justify-center" title="Search by image — decorative in this concept">
         <LensIcon />
       </span>
       <button
@@ -231,8 +232,10 @@ export default function SearchHeader({
 
   return (
     <header className="shrink-0 z-20 bg-white dark:bg-gsurface-dark border-b border-gline dark:border-gline-dark">
-      {/* Logo + search + account row */}
-      <div className="flex items-center gap-3 sm:gap-4 px-4 sm:px-6 pt-4 pb-1">
+      {/* Logo + search + account. Below sm this wraps to two rows the way
+          Google's own mobile header does: logo + account on top, the search
+          pill full-width beneath. */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 sm:gap-x-4 px-4 sm:px-6 pt-3 sm:pt-4 pb-1">
         <a
           href="/"
           className="shrink-0 lg:w-[132px]"
@@ -245,7 +248,7 @@ export default function SearchHeader({
         >
           <GoogleWordmark />
         </a>
-        <div className="flex-1 max-w-[692px]">
+        <div className="order-last w-full sm:order-none sm:w-auto sm:flex-1 sm:max-w-[692px]">
           <SearchBox value={search} onSearch={onSearch} />
         </div>
         <div className="ml-auto flex items-center gap-1 shrink-0">

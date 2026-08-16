@@ -33,8 +33,14 @@ export default async function RootLayout({ children }) {
       <body className="h-full antialiased flex flex-col font-sans bg-white text-gink dark:bg-gsurface-dark dark:text-gink-dark">
         <script dangerouslySetInnerHTML={{ __html: themeInit }} />
         <div className="bg-gsurface-dim dark:bg-gsurface-dark-raised text-gink-secondary dark:text-gink-dark-secondary border-b border-gline dark:border-gline-dark px-4 py-1.5 text-[11px] sm:text-xs text-center shrink-0 z-50">
-          Independent design concept for educational research — not affiliated with or endorsed
-          by Google. Always contact the property directly for current pricing and availability.
+          {/* Phones get the one-line version; the full disclaimer needs three. */}
+          <span className="sm:hidden">
+            Independent concept — not affiliated with Google.
+          </span>
+          <span className="hidden sm:inline">
+            Independent design concept for educational research — not affiliated with or endorsed
+            by Google. Always contact the property directly for current pricing and availability.
+          </span>
           {lastIndexed && (
             <span className="whitespace-nowrap"> Data last indexed {lastIndexed}.</span>
           )}

@@ -22,6 +22,9 @@ export default function Map({ properties, highlightId, onSelect, fitTo, savedIds
   const markersRef = useRef({})
   const propsRef = useRef(properties)
   const [mapReady, setMapReady] = useState(false)
+  // Phones: the legend would cover a third of the map, so it starts collapsed
+  // behind a toggle chip there. Desktop always shows it.
+  const [legendOpen, setLegendOpen] = useState(false)
 
   propsRef.current = properties
 
@@ -170,7 +173,8 @@ export default function Map({ properties, highlightId, onSelect, fitTo, savedIds
     <div className="relative w-full h-full">
       <div ref={containerRef} className="w-full h-full" />
       {/* Legend */}
-      <div className="absolute bottom-8 left-3 z-[1000] bg-white dark:bg-gsurface-dark-raised text-gink-secondary dark:text-gink-dark-secondary rounded-xl shadow-lg border border-gline dark:border-gline-dark px-3 py-2 text-xs space-y-1">
+      <div className="absolute bottom-8 left-3 z-[1000] flex flex-col items-start gap-1.5">
+      <div className={`${legendOpen ? 'block' : 'hidden'} sm:block bg-white dark:bg-gsurface-dark-raised text-gink-secondary dark:text-gink-dark-secondary rounded-xl shadow-lg border border-gline dark:border-gline-dark px-3 py-2 text-xs space-y-1`}>
         <div className="flex items-center gap-2">
           <span className="inline-block w-3 h-3 rounded-full border-2 border-white shadow" style={{ background: MIXED_COLOR }} />
           Mixed Market
@@ -194,6 +198,20 @@ export default function Map({ properties, highlightId, onSelect, fitTo, savedIds
           />
           Saved
         </div>
+      </div>
+      <button
+        type="button"
+        onClick={() => setLegendOpen((o) => !o)}
+        aria-expanded={legendOpen}
+        className="sm:hidden flex items-center gap-1.5 h-8 px-3 rounded-full bg-white dark:bg-gsurface-dark-raised border border-gline dark:border-gline-dark text-xs text-gink-secondary dark:text-gink-dark-secondary shadow-lg"
+      >
+        <span className="flex gap-0.5" aria-hidden="true">
+          <span className="w-2 h-2 rounded-full" style={{ background: MIXED_COLOR }} />
+          <span className="w-2 h-2 rounded-full" style={{ background: AFFORDABLE_COLOR }} />
+          <span className="w-2 h-2 rounded-full" style={{ background: MARKET_COLOR }} />
+        </span>
+        {legendOpen ? 'Hide legend' : 'Legend'}
+      </button>
       </div>
     </div>
   )

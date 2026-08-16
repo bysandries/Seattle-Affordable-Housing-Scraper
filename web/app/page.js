@@ -586,6 +586,34 @@ export default function HomePage() {
           )}
         </aside>
 
+        {/* Phone-only floating view switcher, Google Maps style — below lg the
+            Listings view has no map panel, so this is how the map is reached
+            without hunting for the Maps tab. */}
+        {view === 'listings' && (
+          <button
+            type="button"
+            onClick={() => setView('map')}
+            className="lg:hidden absolute bottom-5 left-1/2 -translate-x-1/2 z-[1100] flex items-center gap-2 h-11 px-5 rounded-full bg-gink text-white dark:bg-gink-dark dark:text-[#202124] text-sm font-medium shadow-lg"
+          >
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true">
+              <path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14" />
+            </svg>
+            Map
+          </button>
+        )}
+        {view === 'map' && (
+          <button
+            type="button"
+            onClick={() => setView('listings')}
+            className="lg:hidden absolute bottom-5 left-1/2 -translate-x-1/2 z-[1100] flex items-center gap-2 h-11 px-5 rounded-full bg-gink text-white dark:bg-gink-dark dark:text-[#202124] text-sm font-medium shadow-lg"
+          >
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              <path d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+            List
+          </button>
+        )}
+
         {/* Property details. In the Listings view it joins the row as an
             equal third column (results 1/3 | map 1/3 | details 1/3); in the
             Maps view it slides over the map's right edge. No backdrop — the
