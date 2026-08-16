@@ -214,6 +214,19 @@ async def _scrape_appfolio_master(
             if detail_a:
                 listing_url = urljoin(url, detail_a["href"])
 
+        # Listing photo, hot-linked from the manager's CDN. The marker's
+        # default_photo_url is the large variant; the card <img> lazy-loads via
+        # data-original while src holds a shared placeholder — never keep that.
+        image_url = None
+        if marker and marker.get("default_photo_url"):
+            image_url = urljoin(url, marker["default_photo_url"])
+        else:
+            img = div.find("img", class_=lambda c: c and "js-listing-image" in c)
+            if img and img.get("data-original"):
+                image_url = urljoin(url, img["data-original"])
+        if image_url and "place_holder" in image_url:
+            image_url = None
+
         if property_id:
             results.append(UnitListing(
                 property_id=property_id,
@@ -227,6 +240,7 @@ async def _scrape_appfolio_master(
                 amenities=None,
                 source_url=url,
                 listing_url=listing_url,
+                image_url=image_url,
                 scraped_at=now
             ))
             continue
@@ -278,6 +292,7 @@ async def _scrape_appfolio_master(
             amenities=None,
             source_url=url,
             listing_url=listing_url,
+            image_url=image_url,
             scraped_at=now
         ))
 

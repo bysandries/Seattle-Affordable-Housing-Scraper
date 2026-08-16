@@ -58,6 +58,7 @@ def _migrate_units_columns(conn: sqlite3.Connection) -> None:
         ("is_current", "INTEGER DEFAULT 1"),
         ("source", "TEXT"),
         ("listing_url", "TEXT"),
+        ("image_url", "TEXT"),
     ):
         if col not in existing:
             conn.execute(f"ALTER TABLE units ADD COLUMN {col} {decl}")
@@ -431,6 +432,7 @@ def _unit_params(u: UnitListing, source: str = "site") -> dict:
         "amenities": u.amenities,
         "source_url": u.source_url,
         "listing_url": u.listing_url,
+        "image_url": u.image_url,
         "scraped_at": u.scraped_at,
     }
 
@@ -440,12 +442,12 @@ _INSERT_UNIT_SQL = """
         property_id, unit_type, sqft, rent_min, rent_max,
         available_count, available_from, available_date, availability_status,
         is_current, source, property_description, amenities, source_url,
-        listing_url, scraped_at
+        listing_url, image_url, scraped_at
     ) VALUES (
         :property_id, :unit_type, :sqft, :rent_min, :rent_max,
         :available_count, :available_from, :available_date, :availability_status,
         1, :source, :property_description, :amenities, :source_url,
-        :listing_url, :scraped_at
+        :listing_url, :image_url, :scraped_at
     )
 """
 
