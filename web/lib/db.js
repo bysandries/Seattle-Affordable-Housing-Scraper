@@ -4,6 +4,7 @@ import { createRequire } from 'module'
 import initSqlJs from 'sql.js'
 import { bedroomAliases } from '@/lib/bedrooms'
 import { addressKey } from '@/lib/addresses'
+import { tokenizeQuery } from '@/lib/searchQuery'
 
 let _db = null
 
@@ -156,7 +157,6 @@ export async function getProperties({
 }) {
   const db = await getDb()
   const offset = (page - 1) * limit
-  const like = `%${search}%`
 
   // Coordinates are not required to be listed. Some statewide records have no
   // geocode, and dropping them would hide real affordable housing; they simply
@@ -164,11 +164,16 @@ export async function getProperties({
   const whereParts = []
   const params = []
 
-  if (search) {
+  // Keyword search, not phrase search: "rent in seattle" must match Seattle.
+  // Filler words are dropped and each remaining keyword independently needs a
+  // hit in some field (AND across keywords, OR across fields). Mirrored
+  // client-side in page.js's visibleMapProperties — keep the field lists equal.
+  for (const token of tokenizeQuery(search)) {
     whereParts.push(
-      '(p.building_name LIKE ? OR p.address LIKE ? OR p.neighborhood LIKE ? OR p.city LIKE ?)'
+      '(p.building_name LIKE ? OR p.address LIKE ? OR p.neighborhood LIKE ? OR p.city LIKE ? OR p.county LIKE ?)'
     )
-    params.push(like, like, like, like)
+    const like = `%${token}%`
+    params.push(like, like, like, like, like)
   }
   if (neighborhood) {
     whereParts.push('p.neighborhood = ?')
@@ -230,6 +235,7 @@ export async function getProperties({
       GROUP_CONCAT(DISTINCT NULLIF(u.unit_type, 'unknown')) AS available_types,
       COUNT(DISTINCT u.id) AS listing_count,
       MIN(CASE WHEN u.available_date IS NOT NULL THEN u.available_date END) AS next_available_date,
+      MAX(u.image_url) AS image_url,
       ${availNowCount}
     FROM properties p
     LEFT JOIN units u ON p.id = u.property_id AND u.is_current = 1 AND u.rent_min IS NOT NULL AND (u.available_count IS NULL OR u.available_count > 0)
@@ -337,6 +343,16 @@ export async function getPropertyById(id) {
     [Number(id)]
   )[0] ?? null
   return { ...property, units, affordable, qualifications, pageInfo }
+}
+
+/**
+ * When the newest unit listing was indexed — the honest "data as of" date for
+ * the site banner. ISO string, or null on an empty/older database.
+ */
+export async function getLastIndexedAt() {
+  const db = await getDb()
+  const rows = tryQuery(db, 'SELECT MAX(scraped_at) AS at FROM units')
+  return rows[0]?.at ?? null
 }
 
 export async function getNeighborhoods() {

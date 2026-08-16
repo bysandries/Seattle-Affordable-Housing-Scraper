@@ -350,7 +350,7 @@ export function importShared({ properties = [], units = [], places = {} }) {
 
 /** Heart toggle. Stops propagation so it works inside clickable rows and cards. */
 export function HeartButton({ active, onToggle, className = '', size = 'md', label = 'favorites' }) {
-  const px = size === 'sm' ? 'w-7 h-7 text-sm' : 'w-8 h-8 text-base'
+  const px = size === 'sm' ? 'w-8 h-8 text-base' : 'w-10 h-10 text-lg'
   return (
     <button
       type="button"
@@ -362,10 +362,11 @@ export function HeartButton({ active, onToggle, className = '', size = 'md', lab
       aria-pressed={active}
       aria-label={active ? `Remove from ${label}` : `Save to ${label}`}
       title={active ? `Remove from ${label}` : `Save to ${label}`}
-      className={`${px} shrink-0 flex items-center justify-center rounded-full border transition-colors ${
+      // Material icon button: borderless, with a hover state circle.
+      className={`${px} shrink-0 flex items-center justify-center rounded-full transition-colors hover:bg-black/5 dark:hover:bg-white/10 ${
         active
-          ? 'bg-rose-50 border-rose-200 text-rose-500 hover:bg-rose-100'
-          : 'bg-white border-slate-200 text-slate-300 hover:text-rose-400 hover:border-rose-200'
+          ? 'text-[#d93025] dark:text-[#f28b82]'
+          : 'text-gink-tertiary/70 hover:text-[#d93025] dark:text-gink-dark-tertiary dark:hover:text-[#f28b82]'
       } ${className}`}
     >
       {active ? '♥' : '♡'}

@@ -4,8 +4,10 @@ import dynamic from 'next/dynamic'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import FilterBar from '@/components/FilterBar'
 import PropertyCard from '@/components/PropertyCard'
-import PropertyModal from '@/components/PropertyModal'
+import PropertyPanel from '@/components/PropertyPanel'
+import SearchHeader from '@/components/SearchHeader'
 import { bedroomAliases } from '@/lib/bedrooms'
+import { detectPlace, matchesTokens, tokenizeQuery } from '@/lib/searchQuery'
 import {
   clearShareToken,
   decodeShare,
@@ -16,6 +18,8 @@ import {
 } from '@/lib/favorites'
 
 const Map = dynamic(() => import('@/components/Map'), { ssr: false })
+
+const PAGE_SIZE = 48
 
 const DEFAULT_FILTERS = {
   search: '',
@@ -32,11 +36,137 @@ const DEFAULT_FILTERS = {
   page: 1,
 }
 
+// The classic "Goooooogle" pager: one red-or-yellow "o" per reachable page,
+// numbers beneath, Previous/Next on the ends.
+function GooglePager({ page, pageCount, onPage }) {
+  const start = Math.max(1, Math.min(page - 4, pageCount - 9))
+  const end = Math.min(pageCount, start + 9)
+  const pages = []
+  for (let p = start; p <= end; p++) pages.push(p)
+
+  const letter = 'font-display text-[27px] leading-none'
+
+  return (
+    <nav
+      className="flex items-start justify-center mt-9 select-none max-w-full overflow-x-auto no-scrollbar"
+      aria-label="Result pages"
+    >
+      {page > 1 && (
+        <button
+          onClick={() => onPage(page - 1)}
+          className="mr-4 mt-[26px] text-sm text-google-blue-ink dark:text-google-link-dark hover:underline"
+        >
+          ‹ Previous
+        </button>
+      )}
+      <span className="flex flex-col items-center px-px">
+        <span className={`${letter} text-google-blue`}>G</span>
+      </span>
+      {pages.map((p) => (
+        <button
+          key={p}
+          onClick={() => p !== page && onPage(p)}
+          aria-current={p === page ? 'page' : undefined}
+          className="flex flex-col items-center px-px group"
+        >
+          <span className={`${letter} ${p === page ? 'text-google-red' : 'text-google-yellow'}`}>o</span>
+          <span
+            className={`text-sm mt-1 ${
+              p === page
+                ? 'text-gink dark:text-gink-dark font-medium'
+                : 'text-google-blue-ink dark:text-google-link-dark group-hover:underline'
+            }`}
+          >
+            {p}
+          </span>
+        </button>
+      ))}
+      <span className="flex flex-col items-center px-px">
+        <span className={`${letter} text-google-blue`}>g</span>
+      </span>
+      <span className="flex flex-col items-center px-px">
+        <span className={`${letter} text-google-green`}>l</span>
+      </span>
+      <span className="flex flex-col items-center px-px">
+        <span className={`${letter} text-google-red`}>e</span>
+      </span>
+      {page < pageCount && (
+        <button
+          onClick={() => onPage(page + 1)}
+          className="ml-4 mt-[26px] text-sm text-google-blue-ink dark:text-google-link-dark hover:underline"
+        >
+          Next ›
+        </button>
+      )}
+    </nav>
+  )
+}
+
+// Google verticals embedded live: igu=1 serves the frame-embeddable variant of
+// google.com results, and each tab maps onto its vertical's URL parameter.
+// udm codes, not the legacy tbm= params — those redirect to pages that refuse
+// framing, while the udm verticals render under igu=1.
+const FRAME_TABS = {
+  all: { label: 'All', param: '' },
+  images: { label: 'Images', param: '&udm=2' },
+  news: { label: 'News', param: '&tbm=nws' },
+  shopping: { label: 'Shopping', param: '&udm=28' },
+}
+
+function GoogleFrame({ tab, search }) {
+  const q = search.trim() || 'apartments for rent in Washington State'
+  const query = `q=${encodeURIComponent(q)}${FRAME_TABS[tab].param}`
+  return (
+    <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 px-4 sm:px-6 lg:pl-[172px] py-2 text-xs text-gink-tertiary dark:text-gink-dark-tertiary border-b border-gline dark:border-gline-dark shrink-0">
+        <span>
+          Live google.com {FRAME_TABS[tab].label} results for “{q}” — embedded as part of this
+          concept.
+        </span>
+        <a
+          href={`https://www.google.com/search?${query}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-google-blue-ink dark:text-google-link-dark hover:underline"
+        >
+          Open on Google ↗
+        </a>
+      </div>
+      <iframe
+        key={query}
+        src={`https://www.google.com/search?igu=1&${query}`}
+        title={`Google ${FRAME_TABS[tab].label} results`}
+        referrerPolicy="no-referrer"
+        className="flex-1 w-full border-0 bg-white"
+      />
+    </div>
+  )
+}
+
+function ResultSkeleton() {
+  return (
+    <div className="space-y-9 mt-4" aria-hidden="true">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="animate-pulse space-y-2.5">
+          <div className="flex items-center gap-3">
+            <div className="w-[26px] h-[26px] rounded-full bg-gsurface-chip dark:bg-gsurface-dark-chip" />
+            <div className="h-3 w-44 rounded bg-gsurface-chip dark:bg-gsurface-dark-chip" />
+          </div>
+          <div className="h-5 w-3/4 rounded bg-gsurface-chip dark:bg-gsurface-dark-chip" />
+          <div className="h-3 w-full rounded bg-gsurface-chip dark:bg-gsurface-dark-chip" />
+          <div className="h-3 w-2/3 rounded bg-gsurface-chip dark:bg-gsurface-dark-chip" />
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export default function HomePage() {
   const [filters, setFilters] = useState(DEFAULT_FILTERS)
   const [properties, setProperties] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [elapsed, setElapsed] = useState(null) // query time for the stats line
   const [mapProperties, setMapProperties] = useState([])
   const [neighborhoods, setNeighborhoods] = useState([])
   const [cities, setCities] = useState([])
@@ -56,7 +186,10 @@ export default function HomePage() {
   // favorites so arriving on a link never quietly rewrites what someone saved.
   const [shared, setShared] = useState(null)
   const [modalId, setModalId] = useState(null)
-  const [view, setView] = useState('split') // 'split' | 'list' | 'map'
+  // 'listings' (results + map panel) | 'map' (Maps tab) | a FRAME_TABS key
+  // (All / Images / News / Shopping — live google.com embeds)
+  const [view, setView] = useState('listings')
+  const [toolsOpen, setToolsOpen] = useState(false)
   const listRef = useRef(null)
   const abortRef = useRef(null)
 
@@ -128,6 +261,7 @@ export default function HomePage() {
     abortRef.current = controller
 
     setLoading(true)
+    const started = performance.now()
     const params = new URLSearchParams(
       Object.entries(filters)
         .filter(([k, v]) => k !== 'favoritesOnly' && v !== '' && v !== 0 && v !== false)
@@ -142,6 +276,7 @@ export default function HomePage() {
       .then(({ properties, total }) => {
         setProperties(properties)
         setTotal(total)
+        setElapsed(((performance.now() - started) / 1000).toFixed(2))
         setLoading(false)
         if (listRef.current) listRef.current.scrollTop = 0
       })
@@ -164,7 +299,11 @@ export default function HomePage() {
     setFilters(next)
   }, [])
 
-  const clearFilters = () => setFilters(DEFAULT_FILTERS)
+  const handleSearch = useCallback((value) => {
+    setFilters((f) => ({ ...f, search: value, page: 1 }))
+  }, [])
+
+  const clearFilters = useCallback(() => setFilters(DEFAULT_FILTERS), [])
 
   const acceptShared = () => {
     importShared(shared)
@@ -179,7 +318,7 @@ export default function HomePage() {
   // Mirror the list query's filter semantics (lib/db.js getProperties) so the
   // map always shows the same set of properties as the list.
   const visibleMapProperties = useMemo(() => {
-    const q = filters.search.trim().toLowerCase()
+    const tokens = tokenizeQuery(filters.search)
     return mapProperties.filter((p) => {
       if (filters.favoritesOnly && !activeFavoriteIds.includes(Number(p.id))) return false
       if (filters.hasListings && !(p.listing_count > 0)) return false
@@ -202,67 +341,55 @@ export default function HomePage() {
       if (filters.maxRent > 0 && p.min_rent != null && p.min_rent > filters.maxRent)
         return false
       if (
-        q &&
-        ![p.building_name, p.address, p.neighborhood, p.city].some((s) =>
-          (s || '').toLowerCase().includes(q)
-        )
+        tokens.length &&
+        !matchesTokens(tokens, [p.building_name, p.address, p.neighborhood, p.city, p.county])
       )
         return false
       return true
     })
   }, [mapProperties, filters, activeFavoriteIds])
 
-  const hasActiveFilters = Object.entries(filters).some(
-    ([k, v]) => k !== 'page' && v !== DEFAULT_FILTERS[k]
-  )
+  // The place a search names ("rent in lynnwood" → Lynnwood), so the map can
+  // fly there even though no explicit location filter is set. Cities take
+  // priority over neighborhoods over counties.
+  const searchPlace = useMemo(() => {
+    const tokens = tokenizeQuery(filters.search)
+    if (!tokens.length) return ''
+    return detectPlace(tokens, [...cities, ...neighborhoods, ...counties])
+  }, [filters.search, cities, neighborhoods, counties])
+
+  const activeFilterCount = [
+    filters.search,
+    filters.neighborhood,
+    filters.city,
+    filters.county,
+    filters.program,
+    filters.incentive,
+    filters.bedroom,
+    filters.maxRent > 0,
+    filters.hasListings,
+    filters.availableNow,
+    filters.favoritesOnly,
+  ].filter(Boolean).length
+
+  const pageCount = Math.ceil(total / PAGE_SIZE)
+  const placeContext = filters.neighborhood || filters.city || filters.county || searchPlace
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <header className="bg-white border-b border-slate-200 px-4 py-3 flex items-center gap-3 shrink-0 z-10">
-        <div className="flex items-center gap-2.5">
-          <span className="text-2xl">🏙</span>
-          <div>
-            <h1 className="font-bold text-slate-900 text-base leading-tight">
-              Washington Affordable Housing Search
-            </h1>
-            <p className="text-xs text-slate-400 leading-tight">
-              {mapProperties.length} properties · Last updated: {new Date().toLocaleDateString()}
-            </p>
-          </div>
-        </div>
+    <div className="flex flex-col h-full bg-white dark:bg-gsurface-dark">
+      <SearchHeader
+        search={filters.search}
+        onSearch={handleSearch}
+        view={view}
+        onViewChange={setView}
+        toolsOpen={toolsOpen}
+        onToolsToggle={() => setToolsOpen((o) => !o)}
+        activeFilterCount={activeFilterCount}
+        onClearAll={clearFilters}
+      />
 
-        {/* View toggle — desktop */}
-        <div className="ml-auto hidden md:flex items-center gap-1 bg-slate-100 rounded-lg p-1">
-          {[
-            { id: 'list', icon: '☰', label: 'List' },
-            { id: 'split', icon: '⊞', label: 'Split' },
-            { id: 'map', icon: '🗺', label: 'Map' },
-          ].map((v) => (
-            <button
-              key={v.id}
-              onClick={() => setView(v.id)}
-              className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md font-medium transition-colors ${
-                view === v.id ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'
-              }`}
-            >
-              {v.icon} {v.label}
-            </button>
-          ))}
-        </div>
-
-        {/* View toggle — mobile */}
-        <div className="ml-auto md:hidden flex items-center gap-1 bg-slate-100 rounded-lg p-1">
-          <button
-            onClick={() => setView(view === 'map' ? 'list' : 'map')}
-            className="text-xs px-3 py-1.5 rounded-md font-medium bg-white shadow text-slate-900"
-          >
-            {view === 'map' ? '☰ List' : '🗺 Map'}
-          </button>
-        </div>
-      </header>
-
-      {/* Filter bar */}
+      {/* Filter chips only apply to this concept's own views, not the embeds */}
+      {!FRAME_TABS[view] && (
       <FilterBar
         filters={filters}
         neighborhoods={neighborhoods}
@@ -274,14 +401,18 @@ export default function HomePage() {
           units: favoriteUnits,
           places: favoritePlaces,
         }}
-        total={total}
+        toolsOpen={toolsOpen}
+        onToolsToggle={() => setToolsOpen((o) => !o)}
         onChange={handleFilterChange}
+        onClearAll={clearFilters}
+        hasActiveFilters={activeFilterCount > 0}
       />
+      )}
 
       {/* Shared list banner */}
       {shared && (
-        <div className="bg-rose-50 border-b border-rose-200 px-4 py-2 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm shrink-0">
-          <span className="text-rose-800">
+        <div className="bg-[#e8f0fe] dark:bg-[#1f3049] text-google-blue-deep dark:text-google-link-dark px-4 sm:px-5 py-2 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm shrink-0">
+          <span>
             ♥ Viewing a shared list —{' '}
             <strong>
               {total} propert{total !== 1 ? 'ies' : 'y'}
@@ -290,160 +421,195 @@ export default function HomePage() {
             {/* A listing can vanish between sharing and opening — say so rather
                 than quietly showing fewer than the sender picked. */}
             {!loading && total < activeFavoriteIds.length && (
-              <span className="text-rose-600">
+              <span className="opacity-75">
                 {' '}· {activeFavoriteIds.length - total} no longer listed
               </span>
             )}
           </span>
           <button
             onClick={acceptShared}
-            className="text-xs font-medium px-3 py-1 rounded-full bg-rose-600 text-white hover:bg-rose-700 transition-colors"
+            className="text-xs font-medium px-3.5 h-7 rounded-full bg-google-blue-ink text-white hover:bg-google-blue-deep dark:bg-google-link-dark dark:text-[#202124] transition-colors"
           >
-            Save to my favorites
+            Save to my list
           </button>
-          <button
-            onClick={dismissShared}
-            className="text-xs text-rose-700 hover:underline"
-          >
+          <button onClick={dismissShared} className="text-xs hover:underline">
             Dismiss
           </button>
         </div>
       )}
 
       {/* Body */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Property list panel */}
-        {view !== 'map' && (
-          <div
-            className={`flex flex-col overflow-hidden bg-slate-50 ${
-              view === 'split' ? 'w-full md:w-[52%] md:border-r md:border-slate-200' : 'w-full'
-            }`}
-          >
-            {/* List header */}
-            <div className="px-4 py-2 flex items-center justify-between shrink-0 border-b border-slate-100 bg-white">
-              <span className="text-xs text-slate-500">
-                {loading
-                  ? 'Loading…'
-                  : total === 0
-                  ? 'No results'
-                  : `${total.toLocaleString()} propert${total !== 1 ? 'ies' : 'y'}`}
-              </span>
-              {hasActiveFilters && (
-                <button
-                  onClick={clearFilters}
-                  className="text-xs text-blue-600 hover:underline"
-                >
-                  Clear filters
-                </button>
-              )}
-            </div>
-
-            {/* Cards */}
-            <div ref={listRef} className="overflow-y-auto flex-1 p-3 scrollbar-thin">
-              {loading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {Array.from({ length: 12 }).map((_, i) => (
-                    <div
-                      key={i}
-                      className="bg-white rounded-xl border-2 border-slate-100 h-32 animate-pulse"
-                    />
-                  ))}
-                </div>
-              ) : properties.length === 0 ? (
-                <div className="text-center text-slate-400 py-16">
-                  <div className="text-4xl mb-3">🏘</div>
-                  <p className="text-sm">No properties match your filters.</p>
-                  <button onClick={clearFilters} className="mt-3 text-blue-600 text-sm hover:underline">
-                    Clear all filters
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {properties.map((p) => (
-                      <PropertyCard
-                        key={p.id}
-                        property={p}
-                        isSelected={selectedId === p.id}
-                        onClick={() => handleCardClick(p.id)}
-                        isFavorite={isPropertyFavorite(p.id)}
-                        onToggleFavorite={() =>
-                          toggleProperty(p.id, { address: p.address, city: p.city })
-                        }
-                        savedUnitCount={sharedSavedUnitCount(p.id)}
-                        highlighted={savedIds.has(Number(p.id))}
-                      />
-                    ))}
-                  </div>
-
-                  {/* Pagination */}
-                  {total > 48 && (
-                    <div className="flex items-center justify-center gap-3 mt-6 pb-4">
-                      <button
-                        disabled={filters.page <= 1}
-                        onClick={() => setFilters((f) => ({ ...f, page: f.page - 1 }))}
-                        className="text-sm px-4 py-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
-                      >
-                        ← Prev
-                      </button>
-                      <span className="text-sm text-slate-500">
-                        Page {filters.page} of {Math.ceil(total / 48)}
-                      </span>
-                      <button
-                        disabled={filters.page >= Math.ceil(total / 48)}
-                        onClick={() => setFilters((f) => ({ ...f, page: f.page + 1 }))}
-                        className="text-sm px-4 py-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
-                      >
-                        Next →
-                      </button>
-                    </div>
+      <div className="relative flex flex-1 overflow-hidden">
+        {view === 'listings' && (
+          <>
+            {/* Results rail: a fixed third of the width, Google Maps style.
+                The map takes the rest — and gives half of it up to the details
+                panel when a property is open. */}
+            <div
+              ref={listRef}
+              className="w-full lg:w-1/3 lg:shrink-0 min-w-0 overflow-y-auto scrollbar-thin lg:border-r lg:border-gline/60 dark:lg:border-gline-dark/60"
+            >
+              <div className="px-4 sm:px-5 pb-10">
+                {/* Stats line */}
+                <p className="pt-3 pb-1 text-[13px] text-gink-tertiary dark:text-gink-dark-tertiary">
+                  {loading ? (
+                    'Searching…'
+                  ) : (
+                    <>
+                      About {total.toLocaleString()} result{total !== 1 ? 's' : ''}
+                      {elapsed != null && ` (${elapsed} seconds)`}
+                      {placeContext && ` · in ${placeContext}`}
+                    </>
                   )}
-                </>
-              )}
+                </p>
 
-              {/* Footer Links */}
-              {!loading && (
-                <div className="mt-8 mb-4 border-t border-slate-200 pt-6 pb-2 flex flex-wrap justify-center gap-x-6 gap-y-3 text-xs text-slate-500">
-                  <a href="/about" className="hover:text-blue-600 transition-colors">About</a>
-                  <a href="/privacy" className="hover:text-blue-600 transition-colors">Privacy Policy</a>
-                  <a href="/terms" className="hover:text-blue-600 transition-colors">Terms of Service</a>
-                  <a href="/disclaimer" className="hover:text-blue-600 transition-colors">Legal Disclaimer</a>
-                </div>
-              )}
+                {loading ? (
+                  <ResultSkeleton />
+                ) : properties.length === 0 ? (
+                  /* The classic empty state */
+                  <div className="mt-8 text-sm text-gink dark:text-gink-dark space-y-4">
+                    <p>
+                      Your search
+                      {filters.search ? (
+                        <> — <strong>{filters.search}</strong> —</>
+                      ) : (
+                        ' with these filters'
+                      )}{' '}
+                      did not match any housing listings.
+                    </p>
+                    <div>
+                      <p className="mb-1.5">Suggestions:</p>
+                      <ul className="list-disc pl-6 space-y-1 text-gink-secondary dark:text-gink-dark-secondary">
+                        <li>Make sure all words are spelled correctly.</li>
+                        <li>Try different or more general keywords.</li>
+                        <li>Try removing the rent or availability filters.</li>
+                      </ul>
+                    </div>
+                    <button
+                      onClick={clearFilters}
+                      className="text-google-blue-ink dark:text-google-link-dark hover:underline"
+                    >
+                      Clear all filters
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <div className="mt-2 space-y-4">
+                      {properties.map((p) => (
+                        <PropertyCard
+                          key={p.id}
+                          property={p}
+                          isSelected={selectedId === p.id}
+                          onClick={() => handleCardClick(p.id)}
+                          isFavorite={isPropertyFavorite(p.id)}
+                          onToggleFavorite={() =>
+                            toggleProperty(p.id, { address: p.address, city: p.city })
+                          }
+                          savedUnitCount={sharedSavedUnitCount(p.id)}
+                          highlighted={savedIds.has(Number(p.id))}
+                        />
+                      ))}
+                    </div>
+
+                    {pageCount > 1 && (
+                      <GooglePager
+                        page={filters.page}
+                        pageCount={pageCount}
+                        onPage={(p) => setFilters((f) => ({ ...f, page: p }))}
+                      />
+                    )}
+                  </>
+                )}
+
+                {/* Google-style footer */}
+                {!loading && (
+                  <footer className="mt-12 border-t border-gline dark:border-gline-dark pt-5 text-[13px] text-gink-secondary dark:text-gink-dark-secondary space-y-3">
+                    <p className="text-gink-tertiary dark:text-gink-dark-tertiary">
+                      Washington State, USA — indexed from public housing data
+                    </p>
+                    <div className="flex flex-wrap gap-x-6 gap-y-2">
+                      <a href="/about" className="hover:underline">About</a>
+                      <a href="/privacy" className="hover:underline">Privacy</a>
+                      <a href="/terms" className="hover:underline">Terms</a>
+                      <a href="/disclaimer" className="hover:underline">Disclaimer</a>
+                      <span className="text-gink-tertiary dark:text-gink-dark-tertiary">
+                        Concept project — not affiliated with Google
+                      </span>
+                    </div>
+                  </footer>
+                )}
+              </div>
             </div>
-          </div>
+
+          </>
         )}
 
-        {/* Map panel */}
-        {view !== 'list' && (
+        {FRAME_TABS[view] && <GoogleFrame tab={view} search={filters.search} />}
+
+        {/* One map instance for every view — the wrapper reshapes from
+            knowledge-panel card ("Listings") to full bleed ("Maps") and simply
+            hides for the google.com embeds. Keeping it mounted avoids tearing
+            Leaflet down mid-animation on tab switches. */}
+        <aside
+          className={
+            view === 'map'
+              ? 'flex flex-col flex-1 min-h-0'
+              : view === 'listings'
+              ? 'hidden lg:flex flex-col flex-1 min-w-0 p-4 pl-2 gap-2 min-h-0'
+              : 'hidden'
+          }
+        >
           <div
-            className={`relative ${
-              view === 'split' ? 'hidden md:block md:flex-1' : 'flex-1'
+            className={`flex-1 min-h-0 relative overflow-hidden ${
+              view === 'map' ? '' : 'rounded-2xl border border-gline dark:border-gline-dark'
             }`}
           >
             <Map
               properties={visibleMapProperties}
               highlightId={selectedId}
               onSelect={handleMapSelect}
-              fitTo={filters.city || filters.county}
+              fitTo={filters.city || filters.county || searchPlace}
               savedIds={savedIds}
               savedUnitCountFor={sharedSavedUnitCount}
             />
           </div>
+          {view === 'listings' && (
+            <div className="flex items-center justify-between text-xs text-gink-tertiary dark:text-gink-dark-tertiary px-1">
+              <span>{visibleMapProperties.length.toLocaleString()} places shown</span>
+              <button
+                onClick={() => setView('map')}
+                className="text-google-blue-ink dark:text-google-link-dark hover:underline"
+              >
+                Open full map
+              </button>
+            </div>
+          )}
+        </aside>
+
+        {/* Property details. In the Listings view it joins the row as an
+            equal third column (results 1/3 | map 1/3 | details 1/3); in the
+            Maps view it slides over the map's right edge. No backdrop — the
+            list and map stay live, and picking another property swaps the
+            content in place. Below lg it overlays full-width either way. */}
+        {modalId && (view === 'listings' || view === 'map') && (
+          <div
+            className={`panel-slide-in ${
+              view === 'listings'
+                ? 'absolute inset-y-0 right-0 z-[1200] w-full lg:static lg:inset-auto lg:z-auto lg:w-1/3 lg:shrink-0 lg:min-w-0'
+                : 'absolute inset-y-0 right-0 z-[1200] w-full sm:w-[440px] xl:w-[480px]'
+            }`}
+          >
+            <PropertyPanel
+              propertyId={modalId}
+              sharedUnitKeys={sharedUnitKeys}
+              onClose={() => {
+                setModalId(null)
+                setSelectedId(null)
+              }}
+            />
+          </div>
         )}
       </div>
-
-      {/* Property modal */}
-      {modalId && (
-        <PropertyModal
-          propertyId={modalId}
-          sharedUnitKeys={sharedUnitKeys}
-          onClose={() => {
-            setModalId(null)
-            setSelectedId(null)
-          }}
-        />
-      )}
     </div>
   )
 }

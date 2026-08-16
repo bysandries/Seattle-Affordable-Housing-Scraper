@@ -16,18 +16,45 @@ body {
 }
 
 .scrollbar-thin::-webkit-scrollbar {
-  width: 5px;
+  width: 6px;
 }
 .scrollbar-thin::-webkit-scrollbar-track {
   background: transparent;
 }
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #dadce0;
   border-radius: 9999px;
+}
+.dark .scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #5f6368;
+}
+
+/* The property-details side panel entering from the right edge. */
+@keyframes panel-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0.6;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.panel-slide-in {
+  animation: panel-in 0.25s cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Hide the horizontal scrollbar on the tab / chip strips while keeping them
+   swipeable on touch screens. */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 .leaflet-popup-content-wrapper {
-  border-radius: 8px !important;
+  border-radius: 12px !important;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
 }
 .leaflet-popup-content {
@@ -35,4 +62,33 @@ body {
   font-family: inherit !important;
   font-size: 13px !important;
   line-height: 1.5 !important;
+}
+
+/* Dark theme for the map: invert only the tile pane so markers and popups
+   keep their real colors. Matches the Google dark-canvas look. */
+.dark .leaflet-container {
+  background: #202124;
+}
+.dark .leaflet-tile {
+  filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9) saturate(0.6);
+}
+.dark .leaflet-popup-content-wrapper,
+.dark .leaflet-popup-tip {
+  background: #303134;
+  color: #e8eaed;
+}
+.dark .leaflet-bar a {
+  background: #303134;
+  color: #e8eaed;
+  border-color: #3c4043;
+}
+.dark .leaflet-bar a:hover {
+  background: #3c4043;
+}
+.dark .leaflet-control-attribution {
+  background: rgba(32, 33, 36, 0.7) !important;
+  color: #9aa0a6 !important;
+}
+.dark .leaflet-control-attribution a {
+  color: #8ab4f8 !important;
 }

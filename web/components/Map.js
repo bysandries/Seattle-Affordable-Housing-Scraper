@@ -3,9 +3,10 @@
 import { useEffect, useRef, useState } from 'react'
 
 const SEATTLE_CENTER = [47.6062, -122.3321]
-const MIXED_COLOR = '#f59e0b'
-const AFFORDABLE_COLOR = '#7c3aed'
-const MARKET_COLOR = '#0284c7'
+// Google-palette marker colors, mirrored by the filter chips and legend.
+const MIXED_COLOR = '#f9ab00'
+const AFFORDABLE_COLOR = '#188038'
+const MARKET_COLOR = '#1a73e8'
 
 const PROGRAM_COLOR = {
   'Mixed Market and Affordable': MIXED_COLOR,
@@ -13,7 +14,7 @@ const PROGRAM_COLOR = {
   'Market Rate': MARKET_COLOR,
 }
 
-const SAVED_RING = '#e11d48'
+const SAVED_RING = '#d93025'
 
 export default function Map({ properties, highlightId, onSelect, fitTo, savedIds, savedUnitCountFor }) {
   const containerRef = useRef(null)
@@ -43,7 +44,16 @@ export default function Map({ properties, highlightId, onSelect, fitTo, savedIds
       setMapReady(true)
     })
 
+    // The container changes size without a window resize when the panel
+    // reshapes between the "Rent" card and the full-bleed "Maps" view;
+    // Leaflet only listens for window resizes, so re-measure explicitly.
+    const observer = new ResizeObserver(() => {
+      if (mapRef.current) mapRef.current.invalidateSize()
+    })
+    observer.observe(containerRef.current)
+
     return () => {
+      observer.disconnect()
       if (mapRef.current) {
         mapRef.current.remove()
         mapRef.current = null
@@ -82,12 +92,14 @@ export default function Map({ properties, highlightId, onSelect, fitTo, savedIds
           opacity: 1,
           fillOpacity: hasListings ? 0.95 : 0.65,
         }
+        // Inline styles with inherited colors so popups read correctly on both
+        // the light and dark popup surfaces.
         const popup =
           `<strong class="text-sm">${p.building_name}</strong><br/>
-           <span class="text-slate-500">${p.address}</span><br/>
-           <span class="text-xs mt-1 inline-block">${p.neighborhood}</span>
-           ${saved ? `<br/><span class="text-xs font-medium" style="color:${SAVED_RING}">♥ Saved${savedUnits ? ` · ${savedUnits} apartment${savedUnits !== 1 ? 's' : ''}` : ''}</span>` : ''}
-           ${hasListings ? '<br/><span class="text-green-600 font-medium text-xs">✓ Listings available</span>' : ''}`
+           <span style="opacity:.65">${p.address}</span><br/>
+           <span class="text-xs mt-1 inline-block" style="opacity:.8">${p.neighborhood}</span>
+           ${saved ? `<br/><span class="text-xs font-medium" style="color:#f28b82">♥ Saved${savedUnits ? ` · ${savedUnits} apartment${savedUnits !== 1 ? 's' : ''}` : ''}</span>` : ''}
+           ${hasListings ? '<br/><span class="font-medium text-xs" style="color:#34a853">✓ Listings available</span>' : ''}`
 
         const existing = markersRef.current[p.id]
         if (existing) {
@@ -139,7 +151,7 @@ export default function Map({ properties, highlightId, onSelect, fitTo, savedIds
         const saved = !!savedIds && savedIds.has(Number(id))
         marker.setStyle({
           radius: isSelected ? 13 : marker.options.radius,
-          color: isSelected ? '#1e40af' : saved ? SAVED_RING : '#fff',
+          color: isSelected ? '#174ea6' : saved ? SAVED_RING : '#fff',
           weight: isSelected ? 3 : saved ? 4 : 2,
           fillOpacity: isSelected ? 1 : marker.options.fillOpacity,
         })
@@ -158,27 +170,27 @@ export default function Map({ properties, highlightId, onSelect, fitTo, savedIds
     <div className="relative w-full h-full">
       <div ref={containerRef} className="w-full h-full" />
       {/* Legend */}
-      <div className="absolute bottom-8 left-3 z-[1000] bg-white rounded-lg shadow px-3 py-2 text-xs space-y-1">
+      <div className="absolute bottom-8 left-3 z-[1000] bg-white dark:bg-gsurface-dark-raised text-gink-secondary dark:text-gink-dark-secondary rounded-xl shadow-lg border border-gline dark:border-gline-dark px-3 py-2 text-xs space-y-1">
         <div className="flex items-center gap-2">
-          <span className="inline-block w-3 h-3 rounded-full bg-amber-400 border-2 border-white shadow" />
+          <span className="inline-block w-3 h-3 rounded-full border-2 border-white shadow" style={{ background: MIXED_COLOR }} />
           Mixed Market
         </div>
         <div className="flex items-center gap-2">
-          <span className="inline-block w-3 h-3 rounded-full bg-violet-600 border-2 border-white shadow" />
+          <span className="inline-block w-3 h-3 rounded-full border-2 border-white shadow" style={{ background: AFFORDABLE_COLOR }} />
           Fully Affordable
         </div>
         <div className="flex items-center gap-2">
-          <span className="inline-block w-3 h-3 rounded-full bg-sky-600 border-2 border-white shadow" />
+          <span className="inline-block w-3 h-3 rounded-full border-2 border-white shadow" style={{ background: MARKET_COLOR }} />
           Market Rate
         </div>
-        <div className="flex items-center gap-2 border-t pt-1 mt-1">
-          <span className="inline-block w-3.5 h-3.5 rounded-full bg-amber-400 border-2 border-white shadow" />
+        <div className="flex items-center gap-2 border-t border-gline dark:border-gline-dark pt-1 mt-1">
+          <span className="inline-block w-3.5 h-3.5 rounded-full border-2 border-white shadow" style={{ background: MIXED_COLOR }} />
           Has live pricing
         </div>
         <div className="flex items-center gap-2">
           <span
-            className="inline-block w-3.5 h-3.5 rounded-full bg-slate-300 shadow"
-            style={{ border: '3px solid #e11d48' }}
+            className="inline-block w-3.5 h-3.5 rounded-full bg-gsurface-chip shadow"
+            style={{ border: `3px solid ${SAVED_RING}` }}
           />
           Saved
         </div>

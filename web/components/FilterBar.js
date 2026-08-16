@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
 import ShareFavorites from '@/components/ShareFavorites'
 
 const BEDROOM_OPTIONS = [
@@ -12,11 +11,11 @@ const BEDROOM_OPTIONS = [
   { value: '3-Bedroom', label: '3 Bed' },
 ]
 
+// Dot colors match the map legend so chips and markers read as one system.
 const PROGRAM_OPTIONS = [
-  { value: '', label: 'Any Property Type', activeClass: 'bg-slate-700 text-white border-slate-700' },
-  { value: 'Mixed Market and Affordable', label: 'Mixed Market', activeClass: 'bg-amber-500 text-white border-amber-500' },
-  { value: 'Fully Affordable', label: 'Fully Affordable', activeClass: 'bg-violet-600 text-white border-violet-600' },
-  { value: 'Market Rate', label: 'Market Rate', activeClass: 'bg-sky-600 text-white border-sky-600' },
+  { value: 'Mixed Market and Affordable', label: 'Mixed Market', dot: '#f9ab00' },
+  { value: 'Fully Affordable', label: 'Fully Affordable', dot: '#188038' },
+  { value: 'Market Rate', label: 'Market Rate', dot: '#1a73e8' },
 ]
 
 // Market-rate incentive programs tracked in affordable_buildings. "None" is the
@@ -39,6 +38,33 @@ const RENT_PRESETS = [
   { label: '≤$3,000', value: 3000 },
 ]
 
+// Material filter chip: tonal blue when selected, outlined otherwise.
+function Chip({ active, onClick, title, children }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={title}
+      aria-pressed={active}
+      className={`shrink-0 flex items-center gap-1.5 h-8 px-3.5 rounded-full text-[13px] border transition-colors ${
+        active
+          ? 'bg-[#e8f0fe] text-google-blue-deep border-transparent dark:bg-[#1f3049] dark:text-google-link-dark'
+          : 'bg-white text-gink-secondary border-gline hover:bg-gsurface-dim dark:bg-transparent dark:text-gink-dark-secondary dark:border-gline-dark dark:hover:bg-gsurface-dark-chip/50'
+      }`}
+    >
+      {active && (
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M4.5 12.5l5 5 10-11" />
+        </svg>
+      )}
+      {children}
+    </button>
+  )
+}
+
+const selectClass =
+  'w-full text-sm rounded-lg px-3 py-2 border border-gline bg-white text-gink focus:border-google-blue-ink focus:outline-none focus:ring-2 focus:ring-[#e8f0fe] dark:bg-gsurface-dark-raised dark:text-gink-dark dark:border-gline-dark dark:focus:ring-[#1f3049]'
+
 export default function FilterBar({
   filters,
   neighborhoods,
@@ -46,247 +72,166 @@ export default function FilterBar({
   counties = [],
   favoriteCount = 0,
   favoritesState,
-  total,
+  toolsOpen,
+  onToolsToggle,
   onChange,
+  onClearAll,
+  hasActiveFilters,
 }) {
-  const [expanded, setExpanded] = useState(false)
-
   const set = (key, value) => onChange({ ...filters, [key]: value, page: 1 })
 
-  // The search box is debounced: each keystroke refetches the list AND
-  // re-filters every map marker, so propagating per-key freezes the page.
-  // The draft keeps typing responsive; filters.search follows 250ms later.
-  const [searchDraft, setSearchDraft] = useState(filters.search)
-  const searchTimer = useRef(null)
-  const filtersRef = useRef(filters)
-  filtersRef.current = filters
-
-  // External resets (Clear filters, shared links) must update the box too.
-  useEffect(() => { setSearchDraft(filters.search) }, [filters.search])
-  useEffect(() => () => clearTimeout(searchTimer.current), [])
-
-  const setSearch = (value) => {
-    setSearchDraft(value)
-    clearTimeout(searchTimer.current)
-    // Read filters through the ref at fire time: another filter may have
-    // changed during the debounce window and must not be reverted.
-    searchTimer.current = setTimeout(
-      () => onChange({ ...filtersRef.current, search: value, page: 1 }),
-      250
-    )
-  }
-
-  const activeCount = [
-    filters.search,
-    filters.neighborhood,
-    filters.city,
-    filters.county,
-    filters.program,
-    filters.incentive,
-    filters.bedroom,
-    filters.maxRent > 0,
-    filters.hasListings,
-    filters.availableNow,
-    filters.favoritesOnly,
-  ].filter(Boolean).length
-
   return (
-    <div className="border-b border-slate-200 bg-white">
-      {/* Main search row */}
-      <div className="px-4 py-3 flex items-center gap-2">
-        <div className="relative flex-1">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">🔍</span>
-          <input
-            type="text"
-            placeholder="Search by name, address, neighborhood…"
-            value={searchDraft}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm bg-slate-100 rounded-lg border-transparent focus:bg-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all placeholder:text-slate-400"
-          />
-        </div>
-
+    <div className="shrink-0 border-b border-gline dark:border-gline-dark bg-white dark:bg-gsurface-dark">
+      {/* Chip strip */}
+      <div className="px-4 sm:px-5 py-2.5 flex items-center gap-2 overflow-x-auto no-scrollbar">
+        {/* Google Shopping-style refine chip: opens the Tools panel */}
         <button
-          onClick={() => setExpanded(!expanded)}
-          className={`flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg border transition-colors ${
-            expanded || activeCount > 1
-              ? 'bg-blue-600 text-white border-blue-600'
-              : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
+          type="button"
+          onClick={onToolsToggle}
+          title="All filters"
+          aria-label="All filters"
+          aria-expanded={toolsOpen}
+          className={`shrink-0 flex items-center justify-center h-8 w-11 rounded-full border transition-colors ${
+            toolsOpen
+              ? 'bg-[#e8f0fe] text-google-blue-deep border-transparent dark:bg-[#1f3049] dark:text-google-link-dark'
+              : 'bg-white text-gink-secondary border-gline hover:bg-gsurface-dim dark:bg-transparent dark:text-gink-dark-secondary dark:border-gline-dark dark:hover:bg-gsurface-dark-chip/50'
           }`}
         >
-          ⚙ Filters
-          {activeCount > 1 && (
-            <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${expanded ? 'bg-white text-blue-600' : 'bg-blue-600 text-white'}`}>
-              {activeCount}
-            </span>
-          )}
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+            <path d="M4 7h10M18 7h2M4 17h2M10 17h10" />
+            <circle cx="16" cy="7" r="2.2" />
+            <circle cx="8" cy="17" r="2.2" />
+          </svg>
         </button>
-      </div>
 
-      {/* Quick toggles */}
-      <div className="px-4 pb-2.5 flex items-center gap-2 flex-wrap">
-        <button
+        <Chip
+          active={filters.favoritesOnly}
           onClick={() => set('favoritesOnly', !filters.favoritesOnly)}
-          className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ${
-            filters.favoritesOnly
-              ? 'bg-rose-500 text-white border-rose-500'
-              : 'bg-white text-slate-600 border-slate-200 hover:border-rose-400'
-          }`}
           title="Show only properties you have saved"
         >
-          {filters.favoritesOnly ? '♥' : '♡'} Favorites
-          {favoriteCount > 0 && (
-            <span
-              className={`ml-1.5 text-xs font-bold px-1.5 py-0.5 rounded-full ${
-                filters.favoritesOnly ? 'bg-white text-rose-600' : 'bg-rose-100 text-rose-600'
-              }`}
-            >
-              {favoriteCount}
-            </span>
-          )}
-        </button>
+          {filters.favoritesOnly ? '♥' : '♡'} Saved
+          {favoriteCount > 0 && <span className="font-bold">{favoriteCount}</span>}
+        </Chip>
 
         <ShareFavorites state={favoritesState} disabled={favoriteCount === 0} />
 
-        <button
-          onClick={() => set('hasListings', !filters.hasListings)}
-          className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ${
-            filters.hasListings
-              ? 'bg-emerald-600 text-white border-emerald-600'
-              : 'bg-white text-slate-600 border-slate-200 hover:border-emerald-400'
-          }`}
-        >
-          ✓ Live pricing only
-        </button>
+        <Chip active={filters.hasListings} onClick={() => set('hasListings', !filters.hasListings)}>
+          Live pricing
+        </Chip>
 
-        <button
+        <Chip
+          active={filters.availableNow}
           onClick={() => set('availableNow', !filters.availableNow)}
-          className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ${
-            filters.availableNow
-              ? 'bg-teal-600 text-white border-teal-600'
-              : 'bg-white text-slate-600 border-slate-200 hover:border-teal-400'
-          }`}
           title="Units listed as available now, or whose availability date has arrived"
         >
-          🔑 Available now
-        </button>
+          Available now
+        </Chip>
 
-        {PROGRAM_OPTIONS.map((opt) => (
+        <span className="w-px h-5 mx-0.5 bg-gline dark:bg-gline-dark shrink-0" aria-hidden="true" />
+
+        {PROGRAM_OPTIONS.map((opt) => {
+          const active = filters.program === opt.value
+          return (
+            <Chip key={opt.value} active={active} onClick={() => set('program', active ? '' : opt.value)}>
+              <span className="w-2 h-2 rounded-full shrink-0" style={{ background: opt.dot }} />
+              {opt.label}
+            </Chip>
+          )
+        })}
+
+        {hasActiveFilters && (
           <button
-            key={opt.value}
-            onClick={() => set('program', opt.value)}
-            className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ${
-              filters.program === opt.value
-                ? opt.activeClass
-                : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'
-            }`}
+            type="button"
+            onClick={onClearAll}
+            className="shrink-0 ml-1 text-[13px] text-google-blue-ink dark:text-google-link-dark hover:underline"
           >
-            {opt.label}
+            Clear all
           </button>
-        ))}
-
-        <span className="ml-auto text-xs text-slate-400">
-          {total.toLocaleString()} properties
-        </span>
+        )}
       </div>
 
-      {/* Expanded filters */}
-      {expanded && (
-        <div className="px-4 pb-4 pt-1 border-t border-slate-100 grid grid-cols-2 md:grid-cols-3 gap-3">
-          {/* County */}
-          <div>
-            <label className="block text-xs text-slate-500 font-medium mb-1.5">County</label>
-            <select
-              value={filters.county}
-              onChange={(e) => set('county', e.target.value)}
-              className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
-            >
-              <option value="">All counties</option>
-              {counties.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-          </div>
+      {/* Tools panel */}
+      {toolsOpen && (
+        <div className="px-4 sm:px-5 pb-4 pt-1 border-t border-gline/60 dark:border-gline-dark/60">
+          <div className="max-w-[900px] grid grid-cols-2 md:grid-cols-3 gap-3">
+            <div>
+              <label className="block text-xs text-gink-tertiary dark:text-gink-dark-tertiary font-medium mb-1.5">
+                County
+              </label>
+              <select value={filters.county} onChange={(e) => set('county', e.target.value)} className={selectClass}>
+                <option value="">All counties</option>
+                {counties.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
 
-          {/* City */}
-          <div>
-            <label className="block text-xs text-slate-500 font-medium mb-1.5">City</label>
-            <select
-              value={filters.city}
-              onChange={(e) => set('city', e.target.value)}
-              className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
-            >
-              <option value="">All Washington</option>
-              {cities.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-          </div>
+            <div>
+              <label className="block text-xs text-gink-tertiary dark:text-gink-dark-tertiary font-medium mb-1.5">
+                City
+              </label>
+              <select value={filters.city} onChange={(e) => set('city', e.target.value)} className={selectClass}>
+                <option value="">All Washington</option>
+                {cities.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
 
-          {/* Neighborhood */}
-          <div>
-            <label className="block text-xs text-slate-500 font-medium mb-1.5">
-              Neighborhood <span className="text-slate-400 font-normal">(Seattle)</span>
-            </label>
-            <select
-              value={filters.neighborhood}
-              onChange={(e) => set('neighborhood', e.target.value)}
-              className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
-            >
-              <option value="">All neighborhoods</option>
-              {neighborhoods.map((n) => (
-                <option key={n} value={n}>{n}</option>
-              ))}
-            </select>
-          </div>
+            <div>
+              <label className="block text-xs text-gink-tertiary dark:text-gink-dark-tertiary font-medium mb-1.5">
+                Neighborhood <span className="font-normal">(Seattle)</span>
+              </label>
+              <select
+                value={filters.neighborhood}
+                onChange={(e) => set('neighborhood', e.target.value)}
+                className={selectClass}
+              >
+                <option value="">All neighborhoods</option>
+                {neighborhoods.map((n) => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
+            </div>
 
-          {/* Bedroom */}
-          <div>
-            <label className="block text-xs text-slate-500 font-medium mb-1.5">Bedrooms</label>
-            <select
-              value={filters.bedroom}
-              onChange={(e) => set('bedroom', e.target.value)}
-              className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
-            >
-              {BEDROOM_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
-          </div>
+            <div>
+              <label className="block text-xs text-gink-tertiary dark:text-gink-dark-tertiary font-medium mb-1.5">
+                Bedrooms
+              </label>
+              <select value={filters.bedroom} onChange={(e) => set('bedroom', e.target.value)} className={selectClass}>
+                {BEDROOM_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            </div>
 
-          {/* Incentive program */}
-          <div className="col-span-2 md:col-span-1">
-            <label className="block text-xs text-slate-500 font-medium mb-1.5">
-              Incentive program
-            </label>
-            <select
-              value={filters.incentive}
-              onChange={(e) => set('incentive', e.target.value)}
-              title="MFTE, Incentive Zoning and MHA are market-rate buildings with set-aside affordable units. “None of these” covers the rest — LIHTC, project-based Section 8 and city-funded buildings."
-              className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
-            >
-              {INCENTIVE_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
-          </div>
+            <div className="col-span-2 md:col-span-1">
+              <label className="block text-xs text-gink-tertiary dark:text-gink-dark-tertiary font-medium mb-1.5">
+                Incentive program
+              </label>
+              <select
+                value={filters.incentive}
+                onChange={(e) => set('incentive', e.target.value)}
+                title="MFTE, Incentive Zoning and MHA are market-rate buildings with set-aside affordable units. “None of these” covers the rest — LIHTC, project-based Section 8 and city-funded buildings."
+                className={selectClass}
+              >
+                {INCENTIVE_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            </div>
 
-          {/* Max rent */}
-          <div className="col-span-2 md:col-span-3">
-            <label className="block text-xs text-slate-500 font-medium mb-1.5">Max rent / month</label>
-            <div className="flex gap-1.5 flex-wrap">
-              {RENT_PRESETS.map((p) => (
-                <button
-                  key={p.value}
-                  onClick={() => set('maxRent', p.value)}
-                  className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
-                    filters.maxRent === p.value
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'bg-white text-slate-600 border-slate-200 hover:border-blue-400'
-                  }`}
-                >
-                  {p.label}
-                </button>
-              ))}
+            <div className="col-span-2 md:col-span-3">
+              <label className="block text-xs text-gink-tertiary dark:text-gink-dark-tertiary font-medium mb-1.5">
+                Max rent / month
+              </label>
+              <div className="flex gap-1.5 flex-wrap">
+                {RENT_PRESETS.map((p) => (
+                  <Chip key={p.value} active={filters.maxRent === p.value} onClick={() => set('maxRent', p.value)}>
+                    {p.label}
+                  </Chip>
+                ))}
+              </div>
             </div>
           </div>
         </div>
