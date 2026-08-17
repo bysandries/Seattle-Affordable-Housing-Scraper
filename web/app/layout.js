@@ -1,4 +1,6 @@
 import './globals.css'
+import { Analytics } from '@vercel/analytics/next'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import { getLastIndexedAt } from '@/lib/db'
 
 const TITLE = 'Google Listings Search Engine · a Google-style concept'
@@ -66,6 +68,10 @@ export default async function RootLayout({ children }) {
         <div className="flex-1 overflow-hidden h-full">
           {children}
         </div>
+        {/* Cookieless, aggregate-only visit + performance measurement — no
+            cookies means no consent banner is required (see /privacy). */}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )

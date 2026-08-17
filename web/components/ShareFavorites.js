@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { buildShareUrl } from '@/lib/favorites'
+import { trackEvent } from '@/lib/analytics'
 
 const POPOVER_WIDTH = 360
 
@@ -94,8 +95,10 @@ export default function ShareFavorites({ state, disabled }) {
     try {
       await navigator.clipboard.writeText(link)
       setCopied(true)
+      trackEvent('share_list', { auto_copied: true })
     } catch {
       setCopied(false)
+      trackEvent('share_list', { auto_copied: false })
     }
   }
 

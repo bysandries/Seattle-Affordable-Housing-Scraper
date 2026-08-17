@@ -8,6 +8,7 @@ import PropertyPanel from '@/components/PropertyPanel'
 import SearchHeader from '@/components/SearchHeader'
 import { bedroomAliases } from '@/lib/bedrooms'
 import { detectPlace, matchesTokens, tokenizeQuery } from '@/lib/searchQuery'
+import { trackEvent } from '@/lib/analytics'
 import {
   clearShareToken,
   decodeShare,
@@ -288,11 +289,13 @@ export default function HomePage() {
   const handleCardClick = useCallback((id) => {
     setSelectedId(id)
     setModalId(id)
+    trackEvent('property_opened', { source: 'list' })
   }, [])
 
   const handleMapSelect = useCallback((id) => {
     setSelectedId(id)
     setModalId(id)
+    trackEvent('property_opened', { source: 'map' })
   }, [])
 
   const handleFilterChange = useCallback((next) => {
@@ -357,6 +360,28 @@ export default function HomePage() {
     if (!tokens.length) return ''
     return detectPlace(tokens, [...cities, ...neighborhoods, ...counties])
   }, [filters.search, cities, neighborhoods, counties])
+
+  // One search event per settled query (not per keystroke), carrying only
+  // derived signals — never the text the visitor typed.
+  useEffect(() => {
+    const tokens = tokenizeQuery(filters.search)
+    if (!tokens.length) return
+    const t = setTimeout(
+      () => trackEvent('search', { place_matched: !!searchPlace, keywords: tokens.length }),
+      1500
+    )
+    return () => clearTimeout(t)
+  }, [filters.search, searchPlace])
+
+  // Which surfaces get used: listings, map, or the embedded Google verticals.
+  const firstView = useRef(true)
+  useEffect(() => {
+    if (firstView.current) {
+      firstView.current = false
+      return
+    }
+    trackEvent('view_changed', { view })
+  }, [view])
 
   const activeFilterCount = [
     filters.search,

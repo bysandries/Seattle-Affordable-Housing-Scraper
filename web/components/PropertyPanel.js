@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { HeartButton, unitKey, useFavorites } from '@/lib/favorites'
+import { trackEvent } from '@/lib/analytics'
 
 const UNIT_LABELS = {
   micro: 'Micro',
@@ -170,12 +171,14 @@ export default function PropertyPanel({ propertyId, onClose, sharedUnitKeys }) {
     setPhotoIdx(photos.length ? (idx + d + photos.length) % photos.length : 0)
   const markBroken = (src) => setBroken((b) => new Set(b).add(src))
 
-  const openLightboxAt = (src) => {
-    const i = photos.findIndex((p) => p.src === src)
-    if (i >= 0) {
+  const openLightbox = (at) => {
+    if (at != null) {
+      const i = photos.findIndex((p) => p.src === at)
+      if (i < 0) return
       setPhotoIdx(i)
-      setLightbox(true)
     }
+    setLightbox(true)
+    trackEvent('photos_enlarged')
   }
 
   // Escape closes the lightbox first, then the panel; arrows page through
@@ -253,7 +256,7 @@ export default function PropertyPanel({ propertyId, onClose, sharedUnitKeys }) {
                     alt={`${data.building_name} — ${photos[idx].label}`}
                     referrerPolicy="no-referrer"
                     onError={() => markBroken(photos[idx].src)}
-                    onClick={() => setLightbox(true)}
+                    onClick={() => openLightbox()}
                     className="w-full h-52 object-cover cursor-zoom-in"
                   />
                   {/* Which apartment this photo belongs to */}
@@ -373,6 +376,7 @@ export default function PropertyPanel({ propertyId, onClose, sharedUnitKeys }) {
                     href={data.website}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => trackEvent('website_outbound')}
                     className="flex items-center gap-1.5 text-sm font-medium h-9 px-4 rounded-full bg-google-blue-ink text-white hover:bg-google-blue-deep dark:bg-google-link-dark dark:text-[#202124] transition-colors"
                   >
                     Property website ↗
@@ -402,10 +406,13 @@ export default function PropertyPanel({ propertyId, onClose, sharedUnitKeys }) {
                           ? 'hover:bg-[#e8f0fe]/40 dark:hover:bg-[#1f3049]/40 cursor-pointer group'
                           : 'hover:bg-gsurface-dim dark:hover:bg-gsurface-dark-chip/40'
                       }`}
-                      onClick={() =>
-                        u.listing_url &&
+                      onClick={() => {
+                        if (!u.listing_url) return
+                        // The conversion that matters: someone left to view a
+                        // real apartment listing.
+                        trackEvent('listing_outbound')
                         window.open(u.listing_url, '_blank', 'noopener,noreferrer')
-                      }
+                      }}
                     >
                       <HeartButton
                         active={isUnitFavorite(u) || inShared(u)}
@@ -429,7 +436,7 @@ export default function PropertyPanel({ propertyId, onClose, sharedUnitKeys }) {
                           onError={(e) => { e.currentTarget.style.visibility = 'hidden' }}
                           onClick={(e) => {
                             e.stopPropagation()
-                            openLightboxAt(u.image_url)
+                            openLightbox(u.image_url)
                           }}
                           className="w-16 h-12 shrink-0 rounded-lg object-cover bg-gsurface-chip dark:bg-gsurface-dark-chip cursor-zoom-in"
                         />
