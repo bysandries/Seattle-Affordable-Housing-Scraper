@@ -1,10 +1,28 @@
 import './globals.css'
 import { getLastIndexedAt } from '@/lib/db'
 
+const TITLE = 'Google Listings Search Engine · a Google-style concept'
+const DESCRIPTION =
+  'Concept: what Google Search could look like with a "Listings" tab — a search engine for affordable housing across Washington State with real-time pricing and availability. Independent student project, not affiliated with Google.'
+
 export const metadata = {
-  title: 'Google Listings Search Engine · a Google-style concept',
-  description:
-    'Concept: what Google Search could look like with a "Listings" tab — a search engine for affordable housing across Washington State with real-time pricing and availability. Independent student project, not affiliated with Google.',
+  // Absolute base for og:image / og:url when the link is shared.
+  metadataBase: new URL('https://google-listings-search-engine.vercel.app'),
+  title: TITLE,
+  description: DESCRIPTION,
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: '/',
+    siteName: 'Google Listings Search Engine',
+    type: 'website',
+    locale: 'en_US',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: TITLE,
+    description: DESCRIPTION,
+  },
 }
 
 // Applied before paint so a dark-theme visitor never sees a white flash.
