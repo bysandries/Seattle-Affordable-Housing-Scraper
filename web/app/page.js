@@ -8,6 +8,7 @@ import PropertyPanel from '@/components/PropertyPanel'
 import SearchHeader from '@/components/SearchHeader'
 import { bedroomAliases } from '@/lib/bedrooms'
 import { detectPlace, matchesTokens, tokenizeQuery } from '@/lib/searchQuery'
+import { hasUnitFilters, parseUnitSummary, unitMatchesFilters } from '@/lib/unitFilter'
 import { trackEvent } from '@/lib/analytics'
 import {
   clearShareToken,
@@ -325,7 +326,6 @@ export default function HomePage() {
     return mapProperties.filter((p) => {
       if (filters.favoritesOnly && !activeFavoriteIds.includes(Number(p.id))) return false
       if (filters.hasListings && !(p.listing_count > 0)) return false
-      if (filters.availableNow && !(p.available_now_count > 0)) return false
       if (filters.neighborhood && p.neighborhood !== filters.neighborhood) return false
       if (filters.city && p.city !== filters.city) return false
       if (filters.county && p.county !== filters.county) return false
@@ -337,12 +337,22 @@ export default function HomePage() {
       }
       if (filters.bedroom) {
         // Mirrors BEDROOM_ALIASES in lib/db.js — the Seattle layer spells these
-        // "1-Bedroom" while scraped statewide rows use "1br".
+        // "1-Bedroom" while scraped statewide rows use "1br". Building-level,
+        // so buildings without live pricing still match on what they publish.
         const types = (p.br_types || '').toLowerCase()
         if (!bedroomAliases(filters.bedroom).some((a) => types.includes(a))) return false
       }
-      if (filters.maxRent > 0 && p.min_rent != null && p.min_rent > filters.maxRent)
-        return false
+      // The per-unit rule from lib/db.js: one live unit must satisfy every
+      // unit-level filter at once, or the building has no live pricing to
+      // judge (and the filter does not itself demand live data).
+      if (hasUnitFilters(filters)) {
+        const units = parseUnitSummary(p.unit_summary)
+        if (units.length === 0) {
+          if (filters.availableNow || filters.hasListings) return false
+        } else if (!units.some((u) => unitMatchesFilters(u, filters))) {
+          return false
+        }
+      }
       if (
         tokens.length &&
         !matchesTokens(tokens, [p.building_name, p.address, p.neighborhood, p.city, p.county])
@@ -654,6 +664,7 @@ export default function HomePage() {
           >
             <PropertyPanel
               propertyId={modalId}
+              filters={filters}
               sharedUnitKeys={sharedUnitKeys}
               onClose={() => {
                 setModalId(null)

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { HeartButton, unitKey, useFavorites } from '@/lib/favorites'
 import { trackEvent } from '@/lib/analytics'
+import { hasUnitFilters, unitMatchesFilters } from '@/lib/unitFilter'
 
 const UNIT_LABELS = {
   micro: 'Micro',
@@ -113,7 +114,7 @@ function MiniMap({ lat, long, name }) {
  * modal: no backdrop, the page stays interactive, and selecting another
  * property swaps the content in place. The ✕ (or Escape) closes it.
  */
-export default function PropertyPanel({ propertyId, onClose, sharedUnitKeys }) {
+export default function PropertyPanel({ propertyId, filters, onClose, sharedUnitKeys }) {
   const { isPropertyFavorite, toggleProperty, isUnitFavorite, toggleUnit } = useFavorites()
   // Units the shared list marked. Shown as saved so a recipient sees exactly
   // which apartments were picked, even before importing the list.
@@ -125,6 +126,8 @@ export default function PropertyPanel({ propertyId, onClose, sharedUnitKeys }) {
   // Photo URLs whose CDN link has died (the listing closed) — dropped from the
   // carousel instead of showing a broken frame.
   const [broken, setBroken] = useState(() => new Set())
+  // Lets the visitor look past the filters at everything the building offers.
+  const [showAllUnits, setShowAllUnits] = useState(false)
   const scrollRef = useRef(null)
 
   useEffect(() => {
@@ -133,6 +136,7 @@ export default function PropertyPanel({ propertyId, onClose, sharedUnitKeys }) {
     setData(null)
     setPhotoIdx(0)
     setLightbox(false)
+    setShowAllUnits(false)
     setBroken(new Set())
     fetch(`/api/properties/${propertyId}`)
       .then((r) => r.json())
@@ -143,15 +147,26 @@ export default function PropertyPanel({ propertyId, onClose, sharedUnitKeys }) {
   }, [propertyId])
 
   const chip = PROGRAM_CHIP[data?.program] ?? PROGRAM_CHIP['Fully Affordable']
-  const units = data?.units?.filter((u) => u.rent_min || u.available_from) ?? []
+  const allUnits = data?.units?.filter((u) => u.rent_min || u.available_from) ?? []
+
+  // A filtered search has to hold here too: under "1 Bed, ≤$1,500" the panel
+  // lists only the apartments that are both, never the building's $2,800
+  // one-bedroom. Same rule as the query — see lib/unitFilter.js.
+  const filtersActive = hasUnitFilters(filters)
+  const matchingUnits = filtersActive
+    ? allUnits.filter((u) => unitMatchesFilters(u, filters))
+    : allUnits
+  const hiddenCount = allUnits.length - matchingUnits.length
+  const units = showAllUnits ? allUnits : matchingUnits
 
   // Every distinct listing photo, labeled by the unit it belongs to. Powers
   // the carousel, the thumbnail rail and the lightbox. Hot-linked from the
-  // source, never copied.
+  // source, never copied. Follows the visible units, so a filtered panel never
+  // shows photos of apartments it is hiding.
   const photos = useMemo(() => {
     const out = []
     const seen = new Set()
-    for (const u of data?.units ?? []) {
+    for (const u of units) {
       if (!u.image_url || seen.has(u.image_url) || broken.has(u.image_url)) continue
       seen.add(u.image_url)
       out.push({
@@ -163,7 +178,8 @@ export default function PropertyPanel({ propertyId, onClose, sharedUnitKeys }) {
       })
     }
     return out
-  }, [data, broken])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, broken, showAllUnits, filters])
 
   // photoIdx can point past the end after a broken photo drops out.
   const idx = photos.length ? Math.min(photoIdx, photos.length - 1) : 0
@@ -388,11 +404,22 @@ export default function PropertyPanel({ propertyId, onClose, sharedUnitKeys }) {
             {/* Live unit listings */}
             {units.length > 0 && (
               <div>
-                <h3 className="font-display font-medium text-gink dark:text-gink-dark mb-3 flex items-center gap-2">
+                <h3 className="font-display font-medium text-gink dark:text-gink-dark mb-3 flex flex-wrap items-center gap-x-2 gap-y-1">
                   Available units
                   <span className="bg-[#e6f4ea] text-[#137333] dark:bg-[#1e3a29] dark:text-[#81c995] text-xs font-medium px-2 py-0.5 rounded-full">
                     {units.length} listing{units.length !== 1 ? 's' : ''}
                   </span>
+                  {filtersActive && hiddenCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowAllUnits((v) => !v)}
+                      className="text-xs font-normal text-google-blue-ink dark:text-google-link-dark hover:underline"
+                    >
+                      {showAllUnits
+                        ? `Show only the ${matchingUnits.length} matching your filters`
+                        : `${hiddenCount} more here don't match your filters — show all`}
+                    </button>
+                  )}
                 </h3>
                 {/* Material list rather than a table: each apartment shows its
                     own listing photo, so same-type units in one building are
@@ -498,8 +525,24 @@ export default function PropertyPanel({ propertyId, onClose, sharedUnitKeys }) {
               </div>
             )}
 
+            {/* Everything here was filtered out — say so rather than reading
+                as a building with no pricing at all. */}
+            {units.length === 0 && allUnits.length > 0 && (
+              <div className="bg-gsurface-dim dark:bg-gsurface-dark-chip/50 rounded-2xl p-4 text-sm text-gink-secondary dark:text-gink-dark-secondary text-center">
+                None of the {allUnits.length} apartment
+                {allUnits.length !== 1 ? 's' : ''} listed here match your filters.{' '}
+                <button
+                  type="button"
+                  onClick={() => setShowAllUnits(true)}
+                  className="text-google-blue-ink dark:text-google-link-dark hover:underline"
+                >
+                  Show them anyway
+                </button>
+              </div>
+            )}
+
             {/* No live listings message */}
-            {units.length === 0 && (
+            {allUnits.length === 0 && (
               <div className="bg-gsurface-dim dark:bg-gsurface-dark-chip/50 rounded-2xl p-4 text-sm text-gink-secondary dark:text-gink-dark-secondary text-center">
                 No live pricing data available.
                 {data.website && (

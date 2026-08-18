@@ -215,11 +215,49 @@ export async function getProperties({
 
   const where = whereParts.length ? 'WHERE ' + whereParts.join(' AND ') : ''
 
+  // Unit-level filters describe a single apartment, so one unit has to satisfy
+  // all of them at once. Checking them independently advertised a $2,800
+  // one-bedroom as a "1 Bed under $1,500" whenever another unit in the same
+  // building happened to be cheap. Mirrored in lib/unitFilter.js for the map
+  // and the details panel.
+  const unitPredicates = []
+  if (bedroom) {
+    // Inlined rather than bound: this predicate is written into the statement
+    // more than once (the match count and min_rent), which would misalign
+    // positional parameters. Stripped to [a-z0-9-] so nothing else can ride in.
+    const aliases = bedroomAliases(bedroom)
+      .map((a) => String(a).toLowerCase().replace(/[^a-z0-9-]/g, ''))
+      .filter(Boolean)
+    if (aliases.length) {
+      unitPredicates.push(`LOWER(u.unit_type) IN (${aliases.map((a) => `'${a}'`).join(',')})`)
+    }
+  }
+  if (maxRent > 0) unitPredicates.push(`u.rent_min <= ${Number(maxRent)}`)
+  if (availableNow) unitPredicates.push(availableNowSql('u'))
+  const unitMatch = unitPredicates.join(' AND ')
+
   const havingParts = []
   if (hasListings) havingParts.push('listing_count > 0')
-  if (availableNow) havingParts.push('available_now_count > 0')
-  if (maxRent > 0) havingParts.push(`(min_rent IS NULL OR min_rent <= ${Number(maxRent)})`)
+  if (unitPredicates.length) {
+    // A building that publishes no live pricing cannot be judged unit by unit,
+    // so it falls back to its published metadata (the br_types match above) —
+    // unless the filter itself demands live data.
+    havingParts.push(
+      availableNow || hasListings
+        ? 'matching_unit_count > 0'
+        : '(listing_count = 0 OR matching_unit_count > 0)'
+    )
+  }
   const having = havingParts.length ? 'HAVING ' + havingParts.join(' AND ') : ''
+
+  // Counted and priced over the matching units only, so the card's "from $X"
+  // is the cheapest unit the visitor actually filtered for.
+  const matchingCount = unitPredicates.length
+    ? `COUNT(DISTINCT CASE WHEN ${unitMatch} THEN u.id END) AS matching_unit_count`
+    : 'COUNT(DISTINCT u.id) AS matching_unit_count'
+  const minRent = `MIN(CASE WHEN u.rent_min > 0${
+    unitPredicates.length ? ` AND ${unitMatch}` : ''
+  } THEN u.rent_min END) AS min_rent`
 
   const availNowCount = `COUNT(DISTINCT CASE WHEN ${availableNowSql('u')} THEN u.id END) AS available_now_count`
 
@@ -230,7 +268,8 @@ export async function getProperties({
       p.expiration_date, p.website, p.phone, p.lat, p.long,
       p.owner_management, p.city, p.state, p.county, p.data_source,
       ${withAffordable ? INCENTIVE_FLAGS_SQL + ',' : ''}
-      MIN(CASE WHEN u.rent_min > 0 THEN u.rent_min END) AS min_rent,
+      ${minRent},
+      ${matchingCount},
       MAX(u.rent_max) AS max_rent,
       GROUP_CONCAT(DISTINCT NULLIF(u.unit_type, 'unknown')) AS available_types,
       COUNT(DISTINCT u.id) AS listing_count,
@@ -256,7 +295,8 @@ export async function getProperties({
       SELECT p.id,
         COUNT(DISTINCT u.id) AS listing_count,
         ${availNowCount},
-        MIN(CASE WHEN u.rent_min > 0 THEN u.rent_min END) AS min_rent
+        ${matchingCount},
+        ${minRent}
       FROM properties p
       LEFT JOIN units u ON p.id = u.property_id AND u.is_current = 1 AND u.rent_min IS NOT NULL AND (u.available_count IS NULL OR u.available_count > 0)
       ${where}
@@ -292,7 +332,15 @@ export async function getMapProperties() {
          AND (available_count IS NULL OR available_count > 0)) AS listing_count,
       (SELECT MIN(rent_min) FROM units WHERE property_id = p.id AND is_current = 1
          AND rent_min > 0
-         AND (available_count IS NULL OR available_count > 0)) AS min_rent
+         AND (available_count IS NULL OR available_count > 0)) AS min_rent,
+      -- Each live unit as "type:rent:availableNow", so the client-side mirror
+      -- can apply the same per-unit filter rule as the list query without
+      -- refetching. Parsed by parseUnitSummary in lib/unitFilter.js.
+      (SELECT GROUP_CONCAT(u.unit_type || ':' || IFNULL(u.rent_min, '') || ':' ||
+           (CASE WHEN ${availableNowSql('u')} THEN 1 ELSE 0 END), '|')
+         FROM units u WHERE u.property_id = p.id AND u.is_current = 1
+         AND u.rent_min IS NOT NULL
+         AND (u.available_count IS NULL OR u.available_count > 0)) AS unit_summary
      FROM properties p WHERE p.lat != 0 AND p.long != 0`
   )
 }
