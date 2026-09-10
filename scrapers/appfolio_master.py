@@ -111,21 +111,23 @@ def _fuzzy_match_property(appfolio_address: str, properties: list[dict]) -> int 
 
 async def _scrape_appfolio_master(
     client: httpx.AsyncClient, url: str, properties: list[dict], now: str | None = None
-) -> tuple[list[UnitListing], list[UnitListing], dict[int, AppfolioProperty]]:
+) -> tuple[list[UnitListing], list[UnitListing], dict[int, AppfolioProperty], bool]:
     """Scrape one portal.
 
-    Returns (matched, statewide, statewide_properties). `matched` are units for
-    buildings already in the Seattle Office of Housing dataset. `statewide` are
-    Washington listings from that same portal that match no such building — they
-    get synthesized properties of their own so the app can show the rest of the
-    state, not just Seattle.
+    Returns (matched, statewide, statewide_properties, succeeded). `matched` are
+    units for buildings already in the Seattle Office of Housing dataset.
+    `statewide` are Washington listings from that same portal that match no such
+    building — they get synthesized properties of their own so the app can show
+    the rest of the state, not just Seattle. A failed fetch is distinguished
+    from a successfully fetched empty portal so transient failures cannot retire
+    valid listings.
     """
     try:
         res = await client.get(url, follow_redirects=True, timeout=30)
         res.raise_for_status()
     except Exception as e:
         console.print(f"[red]Failed to fetch {url}: {e}[/]")
-        return [], [], {}
+        return [], [], {}, False
 
     markers = _parse_markers(res.text)
     soup = BeautifulSoup(res.text, "lxml")
@@ -299,7 +301,7 @@ async def _scrape_appfolio_master(
     for pid, types in br_types.items():
         statewide_props[pid].br_types = ", ".join(sorted(types))
 
-    return results, statewide, statewide_props
+    return results, statewide, statewide_props, True
 
 def _save(conn, listings: list[UnitListing], source: str) -> None:
     by_property: dict[int, list] = {}
@@ -318,9 +320,14 @@ async def _run_async(properties: list[dict]):
         all_listings: list[UnitListing] = []
         all_statewide: list[UnitListing] = []
         all_props: dict[int, AppfolioProperty] = {}
+        successful_urls: list[str] = []
         for url in APPFOLIO_MASTER_URLS:
             console.print(f"[cyan]Scraping AppFolio Master: {url}[/]")
-            listings, statewide, props = await _scrape_appfolio_master(client, url, properties, run_ts)
+            listings, statewide, props, succeeded = await _scrape_appfolio_master(
+                client, url, properties, run_ts
+            )
+            if succeeded:
+                successful_urls.append(url)
             all_listings.extend(listings)
             all_statewide.extend(statewide)
             # First portal to advertise a building wins; later ones would only
@@ -335,17 +342,40 @@ async def _run_async(properties: list[dict]):
         with db.db_conn() as conn:
             if all_listings:
                 _save(conn, all_listings, "appfolio-master")
-            stale = db.demote_stale_units(conn, "appfolio-master", run_ts)
-            stale += db.demote_stale_units(conn, STATEWIDE_SOURCE, run_ts)
-            if stale:
-                console.print(f"[yellow]Demoted {stale} rows no longer advertised.[/]")
-            if all_props:
+            if successful_urls:
                 # Properties must exist before their units reference them.
-                upserted, deleted = db.replace_appfolio_properties(conn, list(all_props.values()))
-                _save(conn, all_statewide, STATEWIDE_SOURCE)
+                upserted, deleted = db.replace_appfolio_properties(
+                    conn,
+                    list(all_props.values()),
+                    archived_at=run_ts,
+                    source_urls=successful_urls,
+                )
+                if all_statewide:
+                    _save(conn, all_statewide, STATEWIDE_SOURCE)
                 console.print(
                     f"[bold green]Statewide: {upserted} properties "
                     f"({deleted} stale removed), {len(all_statewide)} units.[/]"
+                )
+            if successful_urls:
+                stale = db.demote_stale_units(
+                    conn,
+                    "appfolio-master",
+                    run_ts,
+                    source_urls=successful_urls,
+                )
+                stale += db.demote_stale_units(
+                    conn,
+                    STATEWIDE_SOURCE,
+                    run_ts,
+                    source_urls=successful_urls,
+                )
+                if stale:
+                    console.print(
+                        f"[yellow]Archived {stale} listings no longer advertised.[/]"
+                    )
+            else:
+                console.print(
+                    "[yellow]No portals were refreshed; existing listings were left current.[/]"
                 )
         console.print(f"[bold green]Saved {len(all_listings)} units from AppFolio portals.[/]")
 

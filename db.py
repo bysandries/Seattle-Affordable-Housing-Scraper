@@ -1,5 +1,7 @@
 import sqlite3
+from collections import Counter
 from contextlib import contextmanager
+from datetime import datetime, timezone
 from typing import Generator
 
 from config import APPFOLIO_MASTER_URLS, DB_PATH
@@ -178,6 +180,7 @@ def init_db() -> None:
                 amenities TEXT,
                 source_url TEXT,
                 listing_url TEXT,
+                image_url TEXT,
                 scraped_at TEXT
             );
 
@@ -185,6 +188,45 @@ def init_db() -> None:
             CREATE INDEX IF NOT EXISTS idx_units_scraped_at ON units(scraped_at);
             CREATE INDEX IF NOT EXISTS idx_units_current ON units(property_id, is_current);
             CREATE INDEX IF NOT EXISTS idx_units_available_date ON units(available_date);
+
+            CREATE TABLE IF NOT EXISTS archived_listings (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                original_unit_id INTEGER NOT NULL UNIQUE,
+                property_id INTEGER NOT NULL,
+                building_name TEXT,
+                address TEXT,
+                neighborhood TEXT,
+                city TEXT,
+                state TEXT,
+                county TEXT,
+                lat REAL,
+                long REAL,
+                unit_type TEXT,
+                sqft INTEGER,
+                rent_min INTEGER,
+                rent_max INTEGER,
+                available_count INTEGER,
+                available_from TEXT,
+                available_date TEXT,
+                availability_status TEXT,
+                source TEXT,
+                property_description TEXT,
+                amenities TEXT,
+                source_url TEXT,
+                listing_url TEXT,
+                image_url TEXT,
+                first_seen_at TEXT,
+                last_seen_at TEXT,
+                archived_at TEXT NOT NULL,
+                archive_reason TEXT NOT NULL
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_archived_listings_property
+                ON archived_listings(property_id);
+            CREATE INDEX IF NOT EXISTS idx_archived_listings_archived_at
+                ON archived_listings(archived_at);
+            CREATE INDEX IF NOT EXISTS idx_archived_listings_location
+                ON archived_listings(city, state);
 
             CREATE TABLE IF NOT EXISTS affordable_buildings (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -333,7 +375,10 @@ def upsert_property(conn: sqlite3.Connection, p: Property) -> None:
 
 
 def replace_appfolio_properties(
-    conn: sqlite3.Connection, props: list["AppfolioProperty"]
+    conn: sqlite3.Connection,
+    props: list["AppfolioProperty"],
+    archived_at: str | None = None,
+    source_urls: list[str] | None = None,
 ) -> tuple[int, int]:
     """Refresh the statewide AppFolio-derived properties.
 
@@ -387,19 +432,59 @@ def replace_appfolio_properties(
     conn.execute("DELETE FROM _seen_appfolio")
     conn.executemany("INSERT OR IGNORE INTO _seen_appfolio (id) VALUES (?)", [(p.id,) for p in props])
 
-    conn.execute(
+    source_filter = ""
+    source_params: list[str] = []
+    if source_urls:
+        placeholders = ",".join("?" * len(source_urls))
+        source_filter = f"""
+            AND EXISTS (
+                SELECT 1 FROM units u
+                WHERE u.property_id = properties.id
+                  AND u.source_url IN ({placeholders})
+            )
         """
-        DELETE FROM units WHERE property_id IN (
-            SELECT id FROM properties
-            WHERE data_source = 'appfolio' AND id NOT IN (SELECT id FROM _seen_appfolio)
+        source_params = source_urls
+
+    stale_property_ids = [
+        r["id"]
+        for r in conn.execute(
+            "SELECT id FROM properties WHERE data_source = 'appfolio' "
+            "AND id NOT IN (SELECT id FROM _seen_appfolio) " + source_filter,
+            source_params,
+        ).fetchall()
+    ]
+    deleted = 0
+    if stale_property_ids:
+        stale_unit_ids: list[int] = []
+        for start in range(0, len(stale_property_ids), 500):
+            batch = stale_property_ids[start : start + 500]
+            stale_unit_ids.extend(
+                r["id"]
+                for r in conn.execute(
+                    "SELECT id FROM units WHERE property_id IN ("
+                    + ",".join("?" * len(batch))
+                    + ")",
+                    batch,
+                ).fetchall()
+            )
+        archive_unit_rows(
+            conn,
+            stale_unit_ids,
+            archived_at=archived_at,
+            reason="property_no_longer_listed",
         )
-        """
-    )
-    cur = conn.execute(
-        "DELETE FROM properties WHERE data_source = 'appfolio' "
-        "AND id NOT IN (SELECT id FROM _seen_appfolio)"
-    )
-    deleted = cur.rowcount if cur.rowcount and cur.rowcount > 0 else 0
+        for start in range(0, len(stale_property_ids), 500):
+            batch = stale_property_ids[start : start + 500]
+            placeholders = ",".join("?" * len(batch))
+            conn.execute(
+                f"DELETE FROM units WHERE property_id IN ({placeholders})",
+                batch,
+            )
+            cur = conn.execute(
+                f"DELETE FROM properties WHERE id IN ({placeholders})",
+                batch,
+            )
+            deleted += cur.rowcount if cur.rowcount and cur.rowcount > 0 else 0
     conn.execute("DROP TABLE IF EXISTS _seen_appfolio")
     return len(props), deleted
 
@@ -473,6 +558,70 @@ def _dedupe_listings(listings: list[UnitListing]) -> list[UnitListing]:
     return deduped
 
 
+def _listing_identity(
+    listing_url: str | None,
+    unit_type: str | None,
+    sqft: int | None,
+    source_url: str | None,
+) -> tuple:
+    """Return an identity that stays stable across rent/date changes."""
+    if listing_url and listing_url.strip():
+        return ("url", listing_url.strip().rstrip("/"))
+    return (
+        "fallback",
+        (unit_type or "unknown").strip().lower(),
+        sqft,
+        (source_url or "").strip().rstrip("/"),
+    )
+
+
+def archive_unit_rows(
+    conn: sqlite3.Connection,
+    unit_ids: list[int],
+    archived_at: str | None = None,
+    reason: str = "no_longer_listed",
+) -> int:
+    """Copy units to the durable archive before they stop being current.
+
+    Location fields are copied rather than referenced because AppFolio-only
+    properties are removed from the live index after their final vacancy goes
+    away. The unique original id makes this safe to call more than once.
+    """
+    if not unit_ids:
+        return 0
+    archived_at = archived_at or datetime.now(timezone.utc).isoformat()
+    before = conn.total_changes
+    for start in range(0, len(unit_ids), 500):
+        batch = unit_ids[start : start + 500]
+        placeholders = ",".join("?" * len(batch))
+        conn.execute(
+            f"""
+            INSERT OR IGNORE INTO archived_listings (
+                original_unit_id, property_id,
+                building_name, address, neighborhood, city, state, county, lat, long,
+                unit_type, sqft, rent_min, rent_max, available_count,
+                available_from, available_date, availability_status, source,
+                property_description, amenities, source_url, listing_url, image_url,
+                first_seen_at, last_seen_at, archived_at, archive_reason
+            )
+            SELECT
+                u.id, u.property_id,
+                p.building_name, p.address, p.neighborhood, p.city, p.state,
+                p.county, p.lat, p.long,
+                u.unit_type, u.sqft, u.rent_min, u.rent_max, u.available_count,
+                u.available_from, u.available_date, u.availability_status,
+                IFNULL(u.source, 'site'), u.property_description, u.amenities,
+                u.source_url, u.listing_url, u.image_url,
+                u.scraped_at, u.scraped_at, ?, ?
+            FROM units u
+            LEFT JOIN properties p ON p.id = u.property_id
+            WHERE u.id IN ({placeholders})
+            """,
+            [archived_at, reason, *batch],
+        )
+    return conn.total_changes - before
+
+
 def insert_units_snapshot(
     conn: sqlite3.Connection,
     property_id: int,
@@ -486,6 +635,30 @@ def insert_units_snapshot(
     earlier scrape. Exact duplicates within the incoming batch are collapsed.
     """
     deduped = _dedupe_listings(listings)
+    current = conn.execute(
+        "SELECT id, unit_type, sqft, source_url, listing_url FROM units "
+        "WHERE property_id = ? AND IFNULL(source,'site') = ? AND is_current = 1",
+        (property_id, source),
+    ).fetchall()
+    incoming = Counter(
+        _listing_identity(u.listing_url, u.unit_type, u.sqft, u.source_url)
+        for u in deduped
+    )
+    removed_ids: list[int] = []
+    for row in current:
+        identity = _listing_identity(
+            row["listing_url"], row["unit_type"], row["sqft"], row["source_url"]
+        )
+        if incoming[identity] > 0:
+            incoming[identity] -= 1
+        else:
+            removed_ids.append(row["id"])
+    archive_unit_rows(
+        conn,
+        removed_ids,
+        archived_at=deduped[0].scraped_at if deduped else None,
+        reason="no_longer_listed",
+    )
     conn.execute(
         "UPDATE units SET is_current = 0 WHERE property_id = ? AND IFNULL(source,'site') = ?",
         (property_id, source),
@@ -607,7 +780,12 @@ def existing_address_keys(conn: sqlite3.Connection, exclude_source: str) -> set[
     return {address_key(r["address"] or "", r["city"] or "") for r in rows}
 
 
-def demote_stale_units(conn: sqlite3.Connection, source: str, run_scraped_at: str) -> int:
+def demote_stale_units(
+    conn: sqlite3.Connection,
+    source: str,
+    run_scraped_at: str,
+    source_urls: list[str] | None = None,
+) -> int:
     """Demote rows from `source` that this run did not rewrite.
 
     insert_units_snapshot only demotes a property that receives new listings, so
@@ -615,10 +793,30 @@ def demote_stale_units(conn: sqlite3.Connection, source: str, run_scraped_at: st
     advertising it, or because a matching fix reassigned its listings elsewhere —
     would otherwise keep stale rows flagged current forever.
     """
+    url_clause = ""
+    params: list = [source, run_scraped_at]
+    if source_urls:
+        url_clause = " AND source_url IN (" + ",".join("?" * len(source_urls)) + ")"
+        params.extend(source_urls)
+    stale_ids = [
+        r["id"]
+        for r in conn.execute(
+            "SELECT id FROM units WHERE IFNULL(source, 'site') = ? "
+            "AND is_current = 1 AND scraped_at < ?" + url_clause,
+            params,
+        ).fetchall()
+    ]
+    archive_unit_rows(
+        conn,
+        stale_ids,
+        archived_at=run_scraped_at,
+        reason="no_longer_listed",
+    )
     cur = conn.execute(
         "UPDATE units SET is_current = 0 "
-        "WHERE IFNULL(source, 'site') = ? AND is_current = 1 AND scraped_at < ?",
-        (source, run_scraped_at),
+        "WHERE IFNULL(source, 'site') = ? AND is_current = 1 AND scraped_at < ?"
+        + url_clause,
+        params,
     )
     return cur.rowcount if cur.rowcount and cur.rowcount > 0 else 0
 

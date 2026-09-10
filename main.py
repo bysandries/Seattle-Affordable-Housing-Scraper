@@ -104,6 +104,7 @@ def cmd_export(_args: argparse.Namespace) -> None:
     rent_limits = pd.read_sql_query("SELECT * FROM rent_limits", conn)
     quals = pd.read_sql_query("SELECT * FROM unit_qualifications", conn)
     page_info = pd.read_sql_query("SELECT * FROM affordable_page_info", conn)
+    archived = pd.read_sql_query("SELECT * FROM archived_listings", conn)
 
     # Live availability: the current snapshot only, soonest first.
     live_avail = pd.read_sql_query(
@@ -174,6 +175,7 @@ def cmd_export(_args: argparse.Namespace) -> None:
     quals_csv = os.path.join(OUTPUT_DIR, "unit_qualifications.csv")
     page_info_csv = os.path.join(OUTPUT_DIR, "affordable_page_info.csv")
     limits_csv = os.path.join(OUTPUT_DIR, "rent_limits.csv")
+    archived_csv = os.path.join(OUTPUT_DIR, "archived_listings.csv")
 
     merged.to_csv(csv_path, index=False)
     merged.to_json(json_path, orient="records", indent=2)
@@ -183,6 +185,7 @@ def cmd_export(_args: argparse.Namespace) -> None:
     quals.to_csv(quals_csv, index=False)
     page_info.to_csv(page_info_csv, index=False)
     rent_limits.to_csv(limits_csv, index=False)
+    archived.to_csv(archived_csv, index=False)
     live_csv = os.path.join(OUTPUT_DIR, "live_availability.csv")
     live_avail.to_csv(live_csv, index=False)
 
@@ -198,6 +201,7 @@ def cmd_export(_args: argparse.Namespace) -> None:
     console.print(f"  {quals_csv}  ({len(quals)} qualification rows)")
     console.print(f"  {page_info_csv}  ({len(page_info)} website-info rows)")
     console.print(f"  {limits_csv}  ({len(rent_limits)} rent limit rows)")
+    console.print(f"  {archived_csv}  ({len(archived)} archived listing snapshots)")
 
 
 def cmd_contact(_args: argparse.Namespace) -> None:
@@ -231,6 +235,7 @@ def cmd_stats(_args: argparse.Namespace) -> None:
     av_future = _count("SELECT COUNT(*) FROM units WHERE is_current=1 AND availability_status='future'")
     av_wait = _count("SELECT COUNT(*) FROM units WHERE is_current=1 AND availability_status='waitlist'")
     av_date = _count("SELECT COUNT(*) FROM units WHERE is_current=1 AND available_date IS NOT NULL")
+    archived = _count("SELECT COUNT(*) FROM archived_listings")
 
     aff_bldgs = _count("SELECT COUNT(*) FROM affordable_buildings")
     mfte_units = _count("SELECT COALESCE(SUM(total_mfte_units),0) FROM affordable_buildings")
@@ -251,6 +256,7 @@ def cmd_stats(_args: argparse.Namespace) -> None:
         f"  Availability — now: {av_now}  |  future-dated: {av_future}  |  "
         f"waitlist: {av_wait}  |  with a calendar date: {av_date}"
     )
+    console.print(f"[bold]Archived listing snapshots:[/] {archived}")
     console.print(
         f"[bold]MFTE/IZ/MHA buildings:[/] {aff_bldgs}  "
         f"(MFTE units: {mfte_units}  |  IZ: {iz_units}  |  "

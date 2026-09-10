@@ -134,8 +134,9 @@ of the state. They become properties of their own with `data_source = 'appfolio'
 addresses are collapsed to one property per building, and ids are negative
 SHA-1 derivations of the building key — the Seattle dataset's ids are positive
 parcel numbers, so the two spaces cannot collide. Rows that stop being
-advertised are deleted on the next run, since they only exist while a portal
-lists them.
+advertised leave the live index on the next successful portal refresh. Their
+final unit price and denormalized location remain in `archived_listings`, even
+after the temporary AppFolio property itself is removed.
 
 These carry **no affordability data** — no AMI, no MFTE/IZ/MHA, no income
 restrictions — and cover only the PM companies in `APPFOLIO_MASTER_URLS`, so
@@ -201,6 +202,15 @@ Every indexed unit gets its availability normalized into a comparable form, stor
 | `availability_status` | `now` · `future` · `waitlist` · `unknown` |
 | `is_current` | `1` for the newest crawl of a property, `0` for retained history |
 | `source` | which ingest path wrote the row (`site`, `appfolio-master`, `lihi`) |
+
+Listings that disappear from a successful source refresh are copied to
+`archived_listings` before their live rows are demoted or deleted. The archive
+stores the last advertised rent, unit details, address, city, county and map
+coordinates without a foreign key, so it remains intact even when a temporary
+AppFolio-only property is removed. When such a property disappears, its entire
+unit history is copied so price changes remain available over time. Older
+non-current rows in `units` continue to provide scrape-by-scrape price history
+for listings whose properties remain in the live index.
 
 Normalization lives in `availability.py` and handles the formats these sites actually use — `9/1/26`, `09/01/2026`, `2026-09-01`, `Sept 1st`, `September 1, 2026`, `Available Now`, `Move-in ready`, `Jan 2026` — plus anti-patterns that must *not* become dates (`parking available 24/7`, `3 available units`). Dates published without a year roll forward to the next occurrence.
 
